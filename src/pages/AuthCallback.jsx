@@ -7,9 +7,19 @@ export default function AuthCallback() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // If inside a popup, close it — main tab will detect the session
+      // If inside a popup, close it and notify parent
       if (window.opener && !window.opener.closed) {
-        window.close()
+        // Send message to parent window before closing
+        try {
+          window.opener.postMessage('auth-success', window.location.origin)
+        } catch (e) {
+          console.log('Could not send message to parent:', e)
+        }
+        
+        // Small delay to ensure message is sent before closing
+        setTimeout(() => {
+          window.close()
+        }, 100)
         return
       }
 

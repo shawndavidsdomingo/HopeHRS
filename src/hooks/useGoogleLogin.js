@@ -42,16 +42,51 @@ export function useGoogleLogin() {
       return
     }
 
-    // Poll every 500ms — when popup closes, check for session
-    const timer = setInterval(async () => {
-      if (popup.closed) {
-        clearInterval(timer)
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session) {
-          window.location.href = '/dashboard'
+    // Better approach: Use message event listener instead of polling popup.closed
+    const handleMessage = (event) => {
+      // Validate the origin for security
+      if (event.origin !== window.location.origin) return
+      
+      if (event.data === 'auth-success') {
+        window.removeEventListener('message', handleMessage)
+        
+        // Check for session and redirect
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            window.location.href = '/dashboard'
+          }
+        })
+      }
+    }
+    
+    window.addEventListener('message', handleMessage)
+    
+    // Fallback: Poll for popup closure with try-catch to handle errors
+    const timer = setInterval(() => {
+      try {
+        if (!popup || popup.closed) {
+          clearInterval(timer)
+          window.removeEventListener('message', handleMessage)
+          
+          // Check session when popup closes
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              window.location.href = '/dashboard'
+            }
+          })
         }
+      } catch (e) {
+        // If we can't access popup.closed due to cross-origin policy,
+        // we'll rely on the message event instead
+        console.log('Cannot access popup.closed due to cross-origin policy, relying on message event')
       }
     }, 500)
+    
+    // Cleanup timeout - if popup doesn't close in 5 minutes, clean up
+    setTimeout(() => {
+      clearInterval(timer)
+      window.removeEventListener('message', handleMessage)
+    }, 300000)
   }
 
   return { signInWithPopup }
