@@ -6,20 +6,21 @@ export default function AuthCallback() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      // If inside a popup, close it and notify parent
+    supabase.auth.exchangeCodeForSession(window.location.href).then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Auth callback error:', error.message)
+        navigate('/login', { replace: true })
+        return
+      }
+
+      // If inside a popup, notify parent then close
       if (window.opener && !window.opener.closed) {
-        // Send message to parent window before closing
         try {
           window.opener.postMessage('auth-success', window.location.origin)
         } catch (e) {
           console.log('Could not send message to parent:', e)
         }
-        
-        // Small delay to ensure message is sent before closing
-        setTimeout(() => {
-          window.close()
-        }, 100)
+        setTimeout(() => window.close(), 100)
         return
       }
 

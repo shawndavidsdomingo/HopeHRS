@@ -2,7 +2,6 @@ import { supabase } from '../lib/supabase'
 
 export function useGoogleLogin() {
   const signInWithPopup = async () => {
-    // Get the OAuth URL without redirecting the current tab
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -24,7 +23,6 @@ export function useGoogleLogin() {
       return
     }
 
-    // Open Google login in a popup window
     const width = 500
     const height = 600
     const left = window.screenX + (window.outerWidth - width) / 2
@@ -37,56 +35,41 @@ export function useGoogleLogin() {
     )
 
     if (!popup) {
-      console.error('Popup was blocked. Please allow popups for localhost.')
       alert('Popup was blocked! Please allow popups for this site and try again.')
       return
     }
 
-    // Better approach: Use message event listener instead of polling popup.closed
+    const redirect = () => {
+      window.location.href = '/dashboard'
+    }
+
+    // Primary: postMessage from AuthCallback (fast, reliable)
     const handleMessage = (event) => {
-      // Validate the origin for security
       if (event.origin !== window.location.origin) return
-      
       if (event.data === 'auth-success') {
-        window.removeEventListener('message', handleMessage)
-        
-        // Check for session and redirect
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            window.location.href = '/dashboard'
-          }
-        })
+        cleanup()
+        redirect()
       }
     }
-    
     window.addEventListener('message', handleMessage)
-    
-    // Fallback: Poll for popup closure with try-catch to handle errors
-    const timer = setInterval(() => {
-      try {
-        if (!popup || popup.closed) {
-          clearInterval(timer)
-          window.removeEventListener('message', handleMessage)
-          
-          // Check session when popup closes
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-              window.location.href = '/dashboard'
-            }
-          })
-        }
-      } catch (e) {
-        // If we can't access popup.closed due to cross-origin policy,
-        // we'll rely on the message event instead
-        console.log('Cannot access popup.closed due to cross-origin policy, relying on message event')
+
+    // Fallback: onAuthStateChange — fires when Supabase writes the session
+    // to localStorage, even if postMessage is blocked by COOP
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+        cleanup()
+        redirect()
       }
-    }, 500)
-    
-    // Cleanup timeout - if popup doesn't close in 5 minutes, clean up
-    setTimeout(() => {
-      clearInterval(timer)
+    })
+
+    const cleanup = () => {
       window.removeEventListener('message', handleMessage)
-    }, 300000)
+      subscription.unsubscribe()
+      clearTimeout(safetyTimer)
+    }
+
+    // Safety cleanup after 5 minutes
+    const safetyTimer = setTimeout(cleanup, 300_000)
   }
 
   return { signInWithPopup }
