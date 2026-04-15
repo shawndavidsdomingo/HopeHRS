@@ -1,46 +1,44 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import ProtectedRoute from './components/ProtectedRoute'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Public pages
-import Landing from './pages/Landing'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import AuthCallback from './pages/AuthCallback'
+// Import all your page components
+import Login from './pages/Login';
+import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
+import Employees from './pages/Employees';
+import EmployeeDetail from './pages/EmployeeDetail';
+import Departments from './pages/Departments';
+import Admin from './pages/Admin';
+import JobCodes from './pages/JobCodes';
+import JobHistory from './pages/JobHistory';
+import Reports from './pages/Reports';
+import DeletedItems from './pages/DeletedItems';
 
-// Protected pages
-import Dashboard from './pages/Dashboard'
-import Employees from './pages/Employees'
-import EmployeeDetail from './pages/EmployeeDetail'
-import JobHistory from './pages/JobHistory'
-import Departments from './pages/Departments'
-import JobCodes from './pages/JobCodes'
-import Reports from './pages/Reports'
-import DeletedItems from './pages/DeletedItems'
-import Admin from './pages/Admin'
-
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-
-        {/* Public routes */}
-        <Route path="/" element={<Landing />} />
+        {/* Public/Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* Protected routes */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
-        <Route path="/employees/:empno" element={<ProtectedRoute><EmployeeDetail /></ProtectedRoute>} />
-        <Route path="/job-history" element={<ProtectedRoute><JobHistory /></ProtectedRoute>} />
-        <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
-        <Route path="/job-codes" element={<ProtectedRoute><JobCodes /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-        <Route path="/deleted-items" element={<ProtectedRoute><DeletedItems /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        {/* Internal HRM Routes */}
+        {/* Note: Your Specialist will likely wrap these in a <ProtectedRoute> component later */}
+        <Route path="/employees" element={<Employees />} />
+        <Route path="/employees/:id" element={<EmployeeDetail />} />
+        <Route path="/departments" element={<Departments />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/job-codes" element={<JobCodes />} />
+        <Route path="/job-history" element={<JobHistory />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/trash" element={<DeletedItems />} />
 
+        {/* Default Redirects */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<div className="p-10 font-bold">404 - Page Not Found</div>} />
       </Routes>
-    </BrowserRouter>
-  )
+    </Router>
+  );
 }
+
+export default App;

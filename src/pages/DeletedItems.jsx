@@ -1,16 +1,32 @@
-import Layout from '../components/Layout'
+import { RotateCcw, Trash2 } from 'lucide-react';
 
 export default function DeletedItems() {
   return (
-    <Layout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Deleted Items</h1>
-        <p className="text-sm text-gray-400 mt-1">View and recover deactivated records — nothing is permanently deleted.</p>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Recycle Bin</h1>
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-slate-50 text-slate-500 text-sm uppercase">
+              <th className="px-6 py-3 font-semibold">Item Type</th>
+              <th className="px-6 py-3 font-semibold">Record Name</th>
+              <th className="px-6 py-3 font-semibold">Deleted By</th>
+              <th className="px-6 py-3 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
+            <tr className="hover:bg-slate-50">
+              <td className="px-6 py-4"><span className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-semibold uppercase">Employee Record</span></td>
+              <td className="px-6 py-4 font-medium text-slate-900">Mark Smith</td>
+              <td className="px-6 py-4">Admin</td>
+              <td className="px-6 py-4 text-right flex justify-end gap-2">
+                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Restore"><RotateCcw size={18} /></button>
+                <button className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Permadelete"><Trash2 size={18} /></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-        <p className="text-sm font-medium text-gray-400">Deleted items view coming in Sprint 2</p>
-        <p className="text-xs text-gray-300 mt-1">Will show all records where is_active = false</p>
-      </div>
-    </Layout>
-  )
+    </div>
+  );
 }
