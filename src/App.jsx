@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
-import Register from './pages/Register';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -439,9 +438,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Only Login Route is active for PR-01 */}
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/employees" replace />} />
-        <Route path="/register" element={!session ? <Register /> : <Navigate to="/employees" replace />} />
 
+        {/* Protected Routes */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Navigate to="/employees" replace />} />
           <Route path="/employees" element={<EmployeeList />} />
@@ -449,6 +449,9 @@ function App() {
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobhistory" element={<JobHistoryList />} />
         </Route>
+        
+        {/* Catch-all to Login if session is missing */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
