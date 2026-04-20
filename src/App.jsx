@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { supabase } from './lib/supabase';
+import { supabase } from './lib/supabaseClient';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
-import Register from './pages/Register';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
