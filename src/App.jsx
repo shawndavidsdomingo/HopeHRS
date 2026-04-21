@@ -438,6 +438,40 @@ function App() {
 
   if (loading) return null;
 
+  ////JUST REPLACE THE ABOVE CODE DAVE WITH THIS
+  // const [session, setSession] = useState(null);
+  // const [loading, setLoading] = useState(true);
+
+  // useEffect(() => {
+  //   supabase.auth.getSession().then(({ data: { session } }) => {
+  //     checkLoginGuard(session);
+  //   });
+
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     checkLoginGuard(session);
+  //   });
+
+  //   return () => subscription.unsubscribe();
+  // }, []);
+
+  // const checkLoginGuard = async (session) => {
+  //   if (session) {
+  //     const status = session.user.user_metadata?.record_status;
+  //     if (status === 'INACTIVE') {
+  //       alert('ACCESS DENIED: Your account is currently INACTIVE. Contact your SuperAdmin.');
+  //       await supabase.auth.signOut();
+  //       setSession(null);
+  //     } else {
+  //       setSession(session);
+  //     }
+  //   } else {
+  //     setSession(null);
+  //   }
+  //   setLoading(false);
+  // };
+
+  // if (loading) return null;
+
   return (
     <BrowserRouter>
       <Routes>
