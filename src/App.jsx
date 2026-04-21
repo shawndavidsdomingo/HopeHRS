@@ -402,7 +402,7 @@ const JobHistoryList = () => {
 
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
-  // Session set to null to force login screen as first redirect
+  // Session set to null to force login screen as first redirect (was { user: true })
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -438,47 +438,13 @@ function App() {
 
   if (loading) return null;
 
-  ////JUST REPLACE THE ABOVE CODE DAVE WITH THIS
-  // const [session, setSession] = useState(null);
-  // const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   supabase.auth.getSession().then(({ data: { session } }) => {
-  //     checkLoginGuard(session);
-  //   });
-
-  //   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-  //     checkLoginGuard(session);
-  //   });
-
-  //   return () => subscription.unsubscribe();
-  // }, []);
-
-  // const checkLoginGuard = async (session) => {
-  //   if (session) {
-  //     const status = session.user.user_metadata?.record_status;
-  //     if (status === 'INACTIVE') {
-  //       alert('ACCESS DENIED: Your account is currently INACTIVE. Contact your SuperAdmin.');
-  //       await supabase.auth.signOut();
-  //       setSession(null);
-  //     } else {
-  //       setSession(session);
-  //     }
-  //   } else {
-  //     setSession(null);
-  //   }
-  //   setLoading(false);
-  // };
-
-  // if (loading) return null;
-
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login Route - first redirect */}
-        <Route path="/login" element={<Login />} />
+        {/* Only Login Route is active for PR-01 */}
+        <Route path="/login" element={!session ? <Login /> : <Navigate to="/employees" replace />} />
 
-        {/* Protected Routes - only accessible if session exists */}
+        {/* Protected Routes */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Navigate to="/employees" replace />} />
           <Route path="/employees" element={<EmployeeList />} />
@@ -487,7 +453,7 @@ function App() {
           <Route path="/jobhistory" element={<JobHistoryList />} />
         </Route>
         
-        {/* Catch-all redirects to login */}
+        {/* Catch-all to Login if session is missing */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
