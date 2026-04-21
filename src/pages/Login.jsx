@@ -17,7 +17,7 @@ const handleLogin = async (e) => {
     else navigate('/employees');
     setLoading(false);
     */
-    navigate('/employees'); // Temporary UI redirect
+    navigate('/employees'); // REMOVE THIS DAVE AFTER MO IUNCOMMENT ABOVE
   };
 
 const handleGoogleLogin = async () => {
@@ -28,7 +28,7 @@ const handleGoogleLogin = async () => {
     });
     if (error) alert(error.message);
     */
-    alert("Google Auth logic is commented out for this PR.");
+    alert("Google Auth logic is commented out for this PR."); ////REMOVE THIS DAVE AFTER MO I UNCOMMENT
   };
 
   return (
