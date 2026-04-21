@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+// import { supabase } from '../lib/supabaseClient';  
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
@@ -8,21 +8,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+const handleLogin = async (e) => {
     e.preventDefault();
+    /* AUTH LOGIC COMMENTED FOR SPECIALISTS
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
     else navigate('/employees');
     setLoading(false);
+    */
+    navigate('/employees'); // Temporary UI redirect
   };
 
-  const handleGoogleLogin = async () => {
+const handleGoogleLogin = async () => {
+    /* GOOGLE AUTH COMMENTED FOR SPECIALISTS
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
     });
     if (error) alert(error.message);
+    */
+    alert("Google Auth logic is commented out for this PR.");
   };
 
   return (

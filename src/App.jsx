@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { supabase } from './lib/supabaseClient';
+// import { supabase } from './lib/supabaseClient';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
 
@@ -402,9 +402,11 @@ const JobHistoryList = () => {
 
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
-  const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Session set to placeholder to bypass login for UI review
+  const [session, setSession] = useState({ user: true });
+  const [loading, setLoading] = useState(false);
 
+  /* AUTH LISTENERS COMMENTED FOR SPECIALISTS
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkLoginGuard(session);
@@ -421,7 +423,7 @@ function App() {
     if (session) {
       const status = session.user.user_metadata?.record_status;
       if (status === 'INACTIVE') {
-        alert('ACCESS DENIED: Your account is currently INACTIVE. Contact your SuperAdmin.');
+        alert('ACCESS DENIED: Your account is currently INACTIVE.');
         await supabase.auth.signOut();
         setSession(null);
       } else {
@@ -432,6 +434,7 @@ function App() {
     }
     setLoading(false);
   };
+  */
 
   if (loading) return null;
 
