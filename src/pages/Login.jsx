@@ -1,5 +1,5 @@
 import { useState } from 'react';
-// import { supabase } from '../lib/supabaseClient';  
+import { supabase } from '../lib/supabaseClient';  
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
@@ -8,7 +8,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const handleLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     /* AUTH LOGIC COMMENTED FOR SPECIALISTS
     setLoading(true);
@@ -16,19 +16,15 @@ const handleLogin = async (e) => {
     if (error) alert(error.message);
     else navigate('/employees');
     setLoading(false);
-    */
     navigate('/employees'); // Temporary UI redirect
+      */
   };
 
-const handleGoogleLogin = async () => {
-    /* GOOGLE AUTH COMMENTED FOR SPECIALISTS
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) alert(error.message);
-    */
-    alert("Google Auth logic is commented out for this PR.");
+  // Google login - placeholder only (wireframe)
+  const handleGoogleLogin = (e) => {
+    e.preventDefault();
+    // TODO: Google OAuth will be implemented in future PR
+    console.log("Google login - wireframe only");
   };
 
   return (
@@ -39,6 +35,7 @@ const handleGoogleLogin = async () => {
           <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">Human Resource System</p>
         </div>
 
+        {/* Google Login Button - Wireframe Only (No OAuth Implementation) */}
         <button 
           onClick={handleGoogleLogin}
           className="w-full mb-6 flex items-center justify-center gap-3 border-2 border-slate-100 p-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-[0.98]"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// import { supabase } from './lib/supabaseClient';
+import { supabase } from './lib/supabaseClient';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
 
@@ -402,8 +402,8 @@ const JobHistoryList = () => {
 
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
-  // Session set to placeholder to bypass login for UI review
-  const [session, setSession] = useState({ user: true });
+  // Session set to null to force login screen as first redirect
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
 
   /* AUTH LISTENERS COMMENTED FOR SPECIALISTS
@@ -441,10 +441,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Only Login Route is active for PR-01 */}
-        <Route path="/login" element={!session ? <Login /> : <Navigate to="/employees" replace />} />
+        {/* Login Route - first redirect */}
+        <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes */}
+        {/* Protected Routes - only accessible if session exists */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Navigate to="/employees" replace />} />
           <Route path="/employees" element={<EmployeeList />} />
@@ -453,7 +453,7 @@ function App() {
           <Route path="/jobhistory" element={<JobHistoryList />} />
         </Route>
         
-        {/* Catch-all to Login if session is missing */}
+        {/* Catch-all redirects to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
