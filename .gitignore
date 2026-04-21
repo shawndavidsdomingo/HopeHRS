@@ -26,4 +26,4 @@ dist-ssr
 # Environment secrets — NEVER commit
 .env
 .env.local
-.env.*.local
+.env.*.localnode_modules/
