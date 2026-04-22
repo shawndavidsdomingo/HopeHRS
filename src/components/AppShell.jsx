@@ -7,16 +7,16 @@ export default function AppShell() {
   const location = useLocation();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    // await supabase.auth.signOut();
     navigate('/login');
   };
 
-  const menuItems = [
-    { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
-    { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
-    { path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> },
-    { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
-  ];
+  // const menuItems = [
+  //   { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
+  //   { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
+  //   { path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> },
+  //   { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
+  // ];
 
   const currentPage = menuItems.find(i => i.path === location.pathname)?.label ?? '';
 
