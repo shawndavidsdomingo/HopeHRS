@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
+import Register from './pages/Register'
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -443,6 +444,7 @@ function App() {
       <Routes>
         {/* Only Login Route is active for PR-01 */}
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/employees" replace />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected Routes */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
