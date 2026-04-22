@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient'; // Updated to match your project structure
+import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function Register() {
@@ -36,9 +36,9 @@ const handleRegister = async (e) => {
     setLoading(false);
     */
 
-    // UI-only behavior for testing
-    console.log("Registration UI submitted:", formData);
-    alert('UI TEST: Application Sent (Logic is currently disabled).');
+    // UI-only behavior for testing the flow
+    console.log("Registration submitted (UI only):", formData);
+    alert('Application Submitted! (Note: Database logic is currently disabled).');
     navigate('/login');
   };
 
