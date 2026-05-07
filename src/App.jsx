@@ -404,31 +404,41 @@ const JobHistoryList = () => {
 
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
-  // Session set to null to force login screen as first redirect (was { user: true })
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pendingError, setPendingError] = useState('');
 
-  /* AUTH LISTENERS COMMENTED FOR SPECIALISTS
   useEffect(() => {
+    // Check existing session on page load
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkLoginGuard(session);
     });
 
+    // Listen for auth changes (login, logout, OAuth callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       checkLoginGuard(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
+  
+// M4 – Sprint 1: Uncommented auth listener + checkLoginGuard()
+// Checks record_status from user table, blocks INACTIVE accounts
+// Added pendingError state passed to Login as prop
   const checkLoginGuard = async (session) => {
     if (session) {
-      const status = session.user.user_metadata?.record_status;
-      if (status === 'INACTIVE') {
-        alert('ACCESS DENIED: Your account is currently INACTIVE.');
+      const { data: userRow } = await supabase
+        .from('user')
+        .select('record_status, user_type, username')
+        .eq('userId', session.user.id)
+        .single();
+
+      if (userRow?.record_status !== 'ACTIVE') {
         await supabase.auth.signOut();
+        setPendingError('Your account is pending activation by an HR administrator.');
         setSession(null);
       } else {
+        setPendingError('');
         setSession(session);
       }
     } else {
@@ -436,19 +446,20 @@ function App() {
     }
     setLoading(false);
   };
-  */
 
   if (loading) return null;
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Only Login Route is active for PR-01 */}
-        <Route path="/login" element={!session ? <Login /> : <Navigate to="/employees" replace />} />
+        <Route path="/login" element={
+          !session
+            ? <Login pendingError={pendingError} />
+            : <Navigate to="/employees" replace />
+        } />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
-        {/* Protected Routes */}
         <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Navigate to="/employees" replace />} />
           <Route path="/employees" element={<EmployeeList />} />
@@ -456,8 +467,7 @@ function App() {
           <Route path="/jobs" element={<JobList />} />
           <Route path="/jobhistory" element={<JobHistoryList />} />
         </Route>
-        
-        {/* Catch-all to Login if session is missing */}
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

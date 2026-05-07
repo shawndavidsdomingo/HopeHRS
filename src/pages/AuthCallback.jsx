@@ -1,19 +1,19 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient'; 
 
 export default function AuthCallback() {
   const navigate = useNavigate();
 
+// M4 – Sprint 1: Replaced fake timer with real getSession() check
+// Redirects to /employees if session exists, /login if not
   useEffect(() => {
-    // UI-ONLY SIMULATION
-    // This timer allows the team to see the spinner before it redirects.
-    const timer = setTimeout(() => {
-      navigate('/employees');
-    }, 3000); // 3 seconds
-
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) navigate('/employees');
+    else navigate('/login');
+  });
+}, [navigate]);
 
   return (
     <div className="min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
