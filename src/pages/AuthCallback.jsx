@@ -3,6 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient'; 
 
+// M4 – Sprint 1 PR3: Google OAuth Redirect URL Setup
+// Register the following redirect URLs to ensure proper callback handling:
+//
+// Supabase Dashboard → Authentication → URL Configuration:
+//   • http://localhost:5173/auth/callback
+//   • https://<your-vercel-app>.vercel.app/auth/callback (for Sprint 3)
+//
+// Google Cloud Console → OAuth 2.0 → Authorized Redirect URIs:
+//   • http://localhost:5173/auth/callback
+//   • https://<project>.supabase.co/auth/v1/callback
+
+
 export default function AuthCallback() {
   const navigate = useNavigate();
 
