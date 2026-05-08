@@ -1,75 +1,56 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useNavigate, Link } from 'react-router-dom';
 
 export default function Register() {
-  const [formData, setFormData] = useState({
-    email: '', password: '', firstName: '', lastName: '', username: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-const handleRegister = async (e) => {
-    e.preventDefault();
-    
-    /* AUTH LOGIC COMMENTED FOR RIGHTS & AUTHS SPECIALIST
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          username: formData.username,
-          record_status: 'INACTIVE' 
-        }
-      }
+  // M4 – Sprint 1: Wired real Google OAuth (same as Login)
+  // Redirects to /auth/callback after Google confirms identity
+  const handleGoogleRegister = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
     });
-
-    if (error) {
-      alert(error.message);
-    } else {
-      alert('Application Sent. Your account is pending HR activation.');
-      navigate('/login');
-    }
-    setLoading(false);
-    */
-
-    // UI-only behavior for testing the flow
-    console.log("Registration submitted (UI only):", formData);
-    alert('Application Submitted! (Note: Database logic is currently disabled).');
-    navigate('/login');
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4 font-sans">
-      <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100">
-        <h2 className="text-3xl font-black text-center mb-2 text-blue-900 tracking-tight italic">HOPE, INC.</h2>
-        <p className="text-center text-slate-400 mb-8 font-bold text-xs uppercase tracking-widest">Portal Registration</p>
-        
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="First Name" required className="bg-slate-50 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-              onChange={e => setFormData({...formData, firstName: e.target.value})} />
-            <input type="text" placeholder="Last Name" required className="bg-slate-50 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-              onChange={e => setFormData({...formData, lastName: e.target.value})} />
-          </div>
-          <input type="text" placeholder="Username" required className="w-full bg-slate-50 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-            onChange={e => setFormData({...formData, username: e.target.value})} />
-          <input type="email" placeholder="Work Email" required className="w-full bg-slate-50 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-            onChange={e => setFormData({...formData, email: e.target.value})} />
-          <input type="password" placeholder="Password" required className="w-full bg-slate-50 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-            onChange={e => setFormData({...formData, password: e.target.value})} />
-          
-          <button type="submit" disabled={loading} className="w-full bg-blue-900 text-white p-4 rounded-2xl font-bold shadow-lg hover:bg-blue-800 transition active:scale-[0.98]">
-            {loading ? 'Sending...' : 'Register Account'}
-          </button>
-        </form>
+    <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center p-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200 p-10">
 
-        <p className="mt-6 text-center text-sm font-medium text-slate-500">
-          Already have an account? <Link to="/login" className="text-blue-700 font-bold">Sign In</Link>
-        </p>
+        {/* Branding */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-12 h-12 bg-slate-900 flex items-center justify-center shadow-lg mb-4">
+            <span className="text-white text-lg font-black">H</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-slate-900 text-xl font-bold tracking-tight">HOPE, INC.</h1>
+            <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-medium">Internal Management</p>
+          </div>
+        </div>
+
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-extrabold text-slate-800">Create Account</h2>
+          <p className="text-slate-400 text-sm mt-2">Access the portal using your NEU work account</p>
+        </div>
+
+        {/* Google OAuth Button */}
+        <button
+          onClick={handleGoogleRegister}
+          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold py-4 px-6 border-2 border-slate-100 rounded-2xl transition-all duration-200 shadow-sm active:scale-[0.98]"
+        >
+          <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+          <span>Continue with Google</span>
+        </button>
+
+        {/* Footer */}
+        <div className="mt-12 pt-8 border-t border-slate-100 text-center">
+          <p className="text-slate-400 text-xs font-medium">
+            Already registered?{' '}
+            <Link to="/login" className="text-indigo-600 font-bold hover:underline ml-1">
+              Sign In
+            </Link>
+          </p>
+        </div>
+
       </div>
     </div>
   );

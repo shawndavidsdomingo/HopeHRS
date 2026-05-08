@@ -2,35 +2,43 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';  
 import { useNavigate, Link } from 'react-router-dom';
 
-export default function Login() {
+export default function Login({ pendingError = '' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
+// M4 – Sprint 1: Wired signInWithPassword() and signInWithOAuth(google)
+// Added pendingError prop + red error box display
   const handleLogin = async (e) => {
     e.preventDefault();
-    /* AUTH LOGIC COMMENTED FOR SPECIALISTS
     setLoading(true);
+    setError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) alert(error.message);
+    if (error) setError(error.message);
     else navigate('/employees');
     setLoading(false);
-    navigate('/employees'); // Temporary UI redirect
-      */
   };
 
-  // Google login - placeholder only (wireframe)
-  const handleGoogleLogin = (e) => {
+  const handleGoogleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Google OAuth will be implemented in future PR
-    console.log("Google login - wireframe only");
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
+    });
   };
 
+  const displayError = pendingError || error;
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
       <div className="bg-white p-10 shadow-2xl rounded-[2.5rem] w-full max-w-md border border-slate-100">
         <div className="text-center mb-8">
+          {displayError && (
+  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-medium text-center">
+    {displayError}
+  </div>
+)}
           <h1 className="text-4xl font-black text-blue-900 tracking-tighter italic">HOPE, INC.</h1>
           <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">Human Resource System</p>
         </div>
