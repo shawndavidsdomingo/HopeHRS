@@ -27,7 +27,7 @@ CREATE TABLE rights (
 );
 
 CREATE TABLE hr_user (
-  userId        VARCHAR(10) PRIMARY KEY,
+  userId        VARCHAR(36) PRIMARY KEY,
   email         VARCHAR(50),
   user_type     VARCHAR(15),
   record_status VARCHAR(10) DEFAULT 'ACTIVE',
@@ -35,14 +35,14 @@ CREATE TABLE hr_user (
 );
 
 CREATE TABLE user_module (
-  userId        VARCHAR(10) REFERENCES hr_user(userId),
+  userId        VARCHAR(36) REFERENCES hr_user(userId),
   moduleCode    VARCHAR(10) REFERENCES module(moduleCode),
   rights_value  INT DEFAULT 0,
   PRIMARY KEY (userId, moduleCode)
 );
 
 CREATE TABLE user_module_rights (
-  userId        VARCHAR(10) REFERENCES hr_user(userId),
+  userId        VARCHAR(36) REFERENCES hr_user(userId),
   rightCode     VARCHAR(10) REFERENCES rights(rightCode),
   right_value   INT DEFAULT 0,
   PRIMARY KEY (userId, rightCode)
