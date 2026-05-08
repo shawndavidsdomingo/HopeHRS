@@ -79,7 +79,6 @@ const EmptyState = ({ cols, label = 'No records found' }) => (
 // ── DataTable ─────────────────────────────────────────────────
 const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New Entry', onAction }) => (
   <div>
-    {/* Page Header */}
     <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
       <div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
@@ -93,14 +92,12 @@ const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New
       </button>
     </div>
 
-    {/* Record count */}
     {!loading && (
       <p className="text-xs text-slate-400 font-medium mb-3">
         {data.length} {data.length === 1 ? 'record' : 'records'} found
       </p>
     )}
 
-    {/* Table */}
     <div className="bg-white border border-slate-200 overflow-hidden">
       <table className="w-full text-left border-collapse">
         <thead>
@@ -156,61 +153,17 @@ const EmployeeList = () => {
   }, []);
 
   const cols = [
-    {
-      header: 'Emp No',
-      key: 'empno',
-      className: 'font-mono text-slate-400 text-xs',
-    },
-    {
-      header: 'Full Name',
-      render: (r) => (
-        <span className="font-semibold text-slate-800 tracking-tight">
-          {r.lastname}, {r.firstname}
-        </span>
-      ),
-    },
-    {
-      header: 'Gender',
-      render: (r) => <GenderPill g={r.gender} />,
-    },
-    {
-      header: 'Birthdate',
-      key: 'birthdate',
-      className: 'text-slate-500 font-mono text-xs',
-    },
-    {
-      header: 'Hire Date',
-      key: 'hiredate',
-      className: 'text-slate-500 font-mono text-xs',
-    },
-    {
-      header: 'Separation',
-      render: (r) => <SepBadge date={r.sepdate} />,
-    },
-    {
-      header: 'Status',
-      render: (r) => <StatusBadge status={r.record_status} />,
-    },
-    {
-      header: '',
-      align: 'right',
-      render: () => (
-        <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">
-          Edit
-        </button>
-      ),
-    },
+    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Full Name', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.lastname}, {r.firstname}</span> },
+    { header: 'Gender', render: (r) => <GenderPill g={r.gender} /> },
+    { header: 'Birthdate', key: 'birthdate', className: 'text-slate-500 font-mono text-xs' },
+    { header: 'Hire Date', key: 'hiredate', className: 'text-slate-500 font-mono text-xs' },
+    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
+    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
+    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
   ];
 
-  return (
-    <DataTable
-      title="Employee Directory"
-      subtitle="All active personnel on record"
-      columns={cols}
-      data={data}
-      loading={loading}
-    />
-  );
+  return <DataTable title="Employee Directory" subtitle="All active personnel on record" columns={cols} data={data} loading={loading} />;
 };
 
 // ── JOBS ──────────────────────────────────────────────────────
@@ -220,13 +173,8 @@ const JobList = () => {
 
   useEffect(() => {
     async function fetchJobs() {
-      const { data, error } = await supabase
-        .from('job')
-        .select('*')
-        .eq('record_status', 'ACTIVE');
-
+      const { data, error } = await supabase.from('job').select('*').eq('record_status', 'ACTIVE');
       if (error) console.error('Job Fetch Error:', error.message);
-      console.log('Jobs Received:', data);
       setData(data || []);
       setLoading(false);
     }
@@ -234,55 +182,23 @@ const JobList = () => {
   }, []);
 
   const cols = [
-    {
-      header: 'Code',
-      key: 'jobcode',
-      className: 'font-mono text-slate-400 text-xs',
-    },
-    {
-      header: 'Position Title',
-      render: (r) => (
-        <span className="font-semibold text-slate-800 tracking-tight">{r.jobtitle}</span>
-      ),
-    },
+    { header: 'Code', key: 'jobcode', className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Position Title', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.jobtitle}</span> },
     {
       header: 'Salary Range',
       render: (r) => (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-slate-500">
-            ${Number(r.lowsal || 0).toLocaleString()}
-          </span>
+          <span className="font-mono text-xs text-slate-500">${Number(r.lowsal || 0).toLocaleString()}</span>
           <span className="text-slate-300 text-xs">—</span>
-          <span className="font-mono text-xs text-slate-500">
-            ${Number(r.highsal || 0).toLocaleString()}
-          </span>
+          <span className="font-mono text-xs text-slate-500">${Number(r.highsal || 0).toLocaleString()}</span>
         </div>
       ),
     },
-    {
-      header: 'Status',
-      render: (r) => <StatusBadge status={r.record_status} />,
-    },
-    {
-      header: '',
-      align: 'right',
-      render: () => (
-        <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">
-          Edit
-        </button>
-      ),
-    },
+    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
+    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
   ];
 
-  return (
-    <DataTable
-      title="Job Catalogue"
-      subtitle="Approved positions and compensation bands"
-      columns={cols}
-      data={data}
-      loading={loading}
-    />
-  );
+  return <DataTable title="Job Catalogue" subtitle="Approved positions and compensation bands" columns={cols} data={data} loading={loading} />;
 };
 
 // ── DEPARTMENTS ───────────────────────────────────────────────
@@ -298,46 +214,14 @@ const DepartmentList = () => {
   }, []);
 
   const cols = [
-    {
-      header: 'Dept Code',
-      key: 'deptno',
-      className: 'font-mono text-slate-400 text-xs',
-    },
-    {
-      header: 'Department Name',
-      render: (r) => (
-        <span className="font-semibold text-slate-800">{r.deptname}</span>
-      ),
-    },
-    {
-      header: 'Location',
-      key: 'location',
-      className: 'text-slate-500 text-sm',
-    },
-    {
-      header: 'Status',
-      render: (r) => <StatusBadge status={r.record_status} />,
-    },
-    {
-      header: '',
-      align: 'right',
-      render: () => (
-        <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">
-          Edit
-        </button>
-      ),
-    },
+    { header: 'Dept Code', key: 'deptno', className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Department Name', render: (r) => <span className="font-semibold text-slate-800">{r.deptname}</span> },
+    { header: 'Location', key: 'location', className: 'text-slate-500 text-sm' },
+    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
+    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
   ];
 
-  return (
-    <DataTable
-      title="Departments"
-      subtitle="Organizational units and locations"
-      columns={cols}
-      data={data}
-      loading={loading}
-    />
-  );
+  return <DataTable title="Departments" subtitle="Organizational units and locations" columns={cols} data={data} loading={loading} />;
 };
 
 // ── JOB HISTORY ───────────────────────────────────────────────
@@ -349,7 +233,6 @@ const JobHistoryList = () => {
     async function fetchHistory() {
       const { data, error } = await supabase.from('jobhistory').select('*');
       if (error) console.error('Database Error:', error.message);
-      else console.log('Raw Data Found:', data);
       setData(data || []);
       setLoading(false);
     }
@@ -357,49 +240,15 @@ const JobHistoryList = () => {
   }, []);
 
   const cols = [
-    {
-      header: 'Emp No',
-      key: 'empno',
-      className: 'font-mono text-slate-400 text-xs',
-    },
-    {
-      header: 'Job Code',
-      key: 'jobcode',
-      className: 'font-mono text-indigo-400 text-xs font-bold',
-    },
-    {
-      header: 'Department',
-      key: 'deptcode',
-      className: 'text-slate-500 text-sm',
-    },
-    {
-      header: 'Effective Date',
-      key: 'effdate',
-      className: 'font-mono text-slate-500 text-xs',
-    },
-    {
-      header: 'Salary',
-      render: (r) => (
-        <span className="font-mono text-sm text-slate-700 font-semibold">
-          ${Number(r.salary || 0).toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      header: 'Status',
-      render: (r) => <StatusBadge status={r.record_status} />,
-    },
+    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Job Code', key: 'jobcode', className: 'font-mono text-indigo-400 text-xs font-bold' },
+    { header: 'Department', key: 'deptcode', className: 'text-slate-500 text-sm' },
+    { header: 'Effective Date', key: 'effdate', className: 'font-mono text-slate-500 text-xs' },
+    { header: 'Salary', render: (r) => <span className="font-mono text-sm text-slate-700 font-semibold">${Number(r.salary || 0).toLocaleString()}</span> },
+    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
   ];
 
-  return (
-    <DataTable
-      title="Employment History"
-      subtitle="Complete job assignment records across all departments"
-      columns={cols}
-      data={data}
-      loading={loading}
-    />
-  );
+  return <DataTable title="Employment History" subtitle="Complete job assignment records across all departments" columns={cols} data={data} loading={loading} />;
 };
 
 // ── APP ROOT ──────────────────────────────────────────────────
@@ -409,37 +258,47 @@ function App() {
   const [pendingError, setPendingError] = useState('');
 
   useEffect(() => {
-    // Check existing session on page load
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkLoginGuard(session);
     });
 
-    // Listen for auth changes (login, logout, OAuth callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       checkLoginGuard(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
-  
-// M4 – Sprint 1: Uncommented auth listener + checkLoginGuard()
-// Checks record_status from user table, blocks INACTIVE accounts
-// Added pendingError state passed to Login as prop
+
+  // M4 – Sprint 1: checkLoginGuard queries hr_user by email.
+  // If you still get a 400, fix it in Supabase Dashboard:
+  //   Table Editor → hr_user → RLS → disable RLS (dev) OR
+  //   add policy: FOR SELECT TO authenticated USING (true)
   const checkLoginGuard = async (session) => {
     if (session) {
-      const { data: userRow } = await supabase
-        .from('user')
-        .select('record_status, user_type, username')
-        .eq('userId', session.user.id)
+      const { data: userRow, error } = await supabase
+        .from('hr_user')
+        .select('record_status, user_type')
+        .eq('email', session.user.email)
         .single();
 
-      if (userRow?.record_status !== 'ACTIVE') {
-        await supabase.auth.signOut();
-        setPendingError('Your account is pending activation by an HR administrator.');
-        setSession(null);
+      // Detailed log to help diagnose any remaining issues
+      if (error) {
+        console.error('[checkLoginGuard] Query error:', error.message, '| hint:', error.hint, '| details:', error.details);
       } else {
+        console.log('[checkLoginGuard] Found user row:', userRow);
+      }
+
+      if (userRow?.record_status === 'ACTIVE') {
         setPendingError('');
         setSession(session);
+      } else {
+        await supabase.auth.signOut();
+        setPendingError(
+          error
+            ? 'Unable to verify your account. Please contact your HR administrator.'
+            : 'Your account is pending activation by an HR administrator.'
+        );
+        setSession(null);
       }
     } else {
       setSession(null);
