@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
 import TestEmployee from './tests/TestEmployee';
+import TestJobHistory from './tests/TestJobHistory';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -330,6 +331,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/login" replace />} />
         <Route path="/test-employee" element={<TestEmployee />} /> {/* Temporary route for testing employeeService */}
+        <Route path="/test-jobhistory" element={<TestJobHistory />} /> {/* Temporary route for testing jobHistoryService */}
         
       </Routes>
     </BrowserRouter>
