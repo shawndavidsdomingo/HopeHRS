@@ -5,6 +5,7 @@ import AppShell from './components/AppShell';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
+import TestEmployee from './tests/TestEmployee';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -328,6 +329,8 @@ function App() {
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/test-employee" element={<TestEmployee />} /> {/* Temporary route for testing employeeService */}
+        
       </Routes>
     </BrowserRouter>
   );
