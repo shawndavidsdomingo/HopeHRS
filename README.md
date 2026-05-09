@@ -67,7 +67,7 @@ git checkout dev
 
 ```bash
 npm install react react-dom react-router-dom @supabase/supabase-js lucide-react vite @vitejs/plugin-react tailwindcss @tailwindcss/postcss postcss autoprefixer eslint @eslint/js eslint-plugin-react-hooks eslint-plugin-react-refresh @types/react @types/react-dom globals vitest @vitest/coverage-v8 jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
-npx tailwindcss init -p
+npm install tailwindcss @tailwindcss/vite
 ```
 
 ---
