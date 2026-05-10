@@ -19,6 +19,7 @@ import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
 import Employees from './pages/Employees';
 import DeletedItems from './pages/DeletedItems';
+import EmployeeDetailPage from './pages/EmployeeDetailPage'
 import Admin from './pages/Admin';
 import TestEmployee from './tests/TestEmployee';
 import TestJobHistory from './tests/TestJobHistory';
@@ -302,6 +303,8 @@ function App() {
 
             {/* M2 PR-01: Full EmployeeListPage with rights gating */}
             <Route path="/employees" element={<Employees />} />
+
+            <Route path="/employees/:empno" element={<EmployeeDetailPage />} />
 
             {/* Sprint 1 placeholders — M2 will replace in PR-02 and PR-03 */}
             <Route path="/departments" element={<DepartmentList />} />
