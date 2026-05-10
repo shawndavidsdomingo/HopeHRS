@@ -9,26 +9,28 @@ export default function AppShell() {
   const location = useLocation();
   const { currentUser } = useRights();
 
+  // Determine if the current user is an admin
+  const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  // Base items visible to everyone
-  const baseMenuItems = [
+  // Base items visible to EVERYONE (USER, ADMIN, SUPERADMIN)
+  const menuItems = [
     { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
     { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
-    { path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> },
-    { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
   ];
 
-  // Conditionally add Deleted Items for ADMIN / SUPERADMIN
-  const menuItems = [...baseMenuItems];
-  if (currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN') {
+  // Admin / Superadmin specific links
+  if (isAdmin) {
+    menuItems.push({ path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> });
+    menuItems.push({ path: '/departments', label: 'Departments',   icon: <Building size={15} /> });
     menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
   }
 
-  const currentPage = menuItems.find(i => i.path === location.pathname)?.label ?? 'Portal';
+  const currentPage = menuItems.find(i => location.pathname.includes(i.path))?.label ?? 'Portal';
 
   return (
     <div className="flex h-screen bg-[#f0f2f5] overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>

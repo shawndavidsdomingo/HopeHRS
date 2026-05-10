@@ -1,22 +1,5 @@
 // src/contexts/UserRightsContext.jsx
-// Sprint 2 — M1 PR-04: feat/route-guard-deleted
-// ─────────────────────────────────────────────────────────────────────────────
-// Queries all 17 UserModule_Rights rows for the logged-in user on login,
-// stores them as a flat rights map: { EMP_VIEW: 1, EMP_ADD: 0, ... }
-//
-// Consumed by:
-//   - useRights() hook  → M4 uses this to gate buttons
-//   - UserRightsContext directly → M1 uses userType for getX(userType) calls
-//
-// Auth pattern: currentUser is built from session.user.email + hr_user row,
-// matching the checkLoginGuard pattern already in App.jsx.
-//
-// Table confirmed from 002_rights_seed.sql:
-//   user_module_rights (userId VARCHAR, rightCode VARCHAR, right_value INT)
-//   hr_user            (userId VARCHAR, email VARCHAR, user_type VARCHAR, ...)
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 // ── Context ───────────────────────────────────────────────────────────────────
@@ -24,12 +7,12 @@ const UserRightsContext = createContext(null);
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 export function UserRightsProvider({ children }) {
-  // currentUser: { email, userid, user_type, record_status }
   const [currentUser, setCurrentUser] = useState(null);
-  // rights: flat map of all 17 right codes → 0 | 1
-  // e.g. { EMP_VIEW: 1, EMP_ADD: 1, EMP_EDIT: 1, EMP_DEL: 0, ... }
   const [rights, setRights] = useState({});
   const [loadingRights, setLoadingRights] = useState(true);
+
+  // FIX: Track the user ID so we don't wipe state on tab switch
+  const activeUserId = useRef(null);
 
   useEffect(() => {
     // Get initial session
@@ -40,9 +23,14 @@ export function UserRightsProvider({ children }) {
 
     // Listen for auth changes (login / logout / token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session) loadUserAndRights(session);
-        else {
+      (event, session) => {
+        // Ignore background refreshes completely
+        if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
+
+        if (session) {
+          loadUserAndRights(session);
+        } else {
+          activeUserId.current = null;
           setCurrentUser(null);
           setRights({});
           setLoadingRights(false);
@@ -55,10 +43,16 @@ export function UserRightsProvider({ children }) {
 
   // ── Load hr_user row + all 17 rights for this session ─────────────────────
   async function loadUserAndRights(session) {
+    // FIX: If we already loaded rights for this user, do nothing!
+    // This stops the UI from flickering/resetting when switching tabs
+    if (activeUserId.current === session.user.id) {
+      return;
+    }
+
     setLoadingRights(true);
 
     try {
-      // 1. Get hr_user row by email (matches App.jsx checkLoginGuard pattern)
+      // 1. Get hr_user row by email
       const { data: userRow, error: userError } = await supabase
         .from('hr_user')
         .select('userid, email, user_type, record_status')
@@ -67,15 +61,16 @@ export function UserRightsProvider({ children }) {
 
       if (userError || !userRow) {
         console.error('[UserRightsContext] hr_user lookup failed:', userError?.message);
+        activeUserId.current = null;
         setCurrentUser(null);
         setRights({});
         setLoadingRights(false);
         return;
       }
 
-      // Guard: only ACTIVE accounts should reach here (login guard in App.jsx
-      // handles signOut for INACTIVE, but double-check defensively)
+      // Guard: only ACTIVE accounts should reach here
       if (userRow.record_status !== 'ACTIVE') {
+        activeUserId.current = null;
         setCurrentUser(null);
         setRights({});
         setLoadingRights(false);
@@ -104,6 +99,8 @@ export function UserRightsProvider({ children }) {
       });
 
       setRights(rightsMap);
+      activeUserId.current = session.user.id; // Mark as successfully loaded!
+
     } catch (err) {
       console.error('[UserRightsContext] Unexpected error:', err);
       setRights({});
@@ -113,8 +110,8 @@ export function UserRightsProvider({ children }) {
   }
 
   const value = {
-    currentUser,   // { userId, email, user_type, record_status }
-    rights,        // { EMP_VIEW: 1, EMP_ADD: 0, EMP_EDIT: 0, EMP_DEL: 0, ... }
+    currentUser,   
+    rights,        
     loadingRights,
   };
 
@@ -126,9 +123,6 @@ export function UserRightsProvider({ children }) {
 }
 
 // ── useRights hook ────────────────────────────────────────────────────────────
-// Usage in any component:
-//   const { currentUser, rights } = useRights();
-//   {rights.EMP_ADD === 1 && <button>Add Employee</button>}
 export function useRights() {
   const context = useContext(UserRightsContext);
   if (!context) {
