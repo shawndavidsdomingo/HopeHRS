@@ -1,40 +1,43 @@
 // src/pages/Departments.jsx
-// Sprint 2 — M2 PR-03: feat/ui-job-dept
-// ─────────────────────────────────────────────────────────────────────────────
-// DeptListPage
-//   Columns : deptCode, deptName, record_status (ADMIN/SUPERADMIN only)
-//   Add     : gated by DEPT_ADD
-//   Edit    : gated by DEPT_EDIT (per-row button)
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { useEffect, useState, useCallback } from 'react';
-import { Building, Plus, Pencil } from 'lucide-react';
-import { getDepts } from '../lib/departmentService';
+import { Building, Plus, Pencil, Trash2 } from 'lucide-react';
+import { getDepts, softDeleteDept } from '../lib/departmentService';
 import { useRights } from '../contexts/UserRightsContext';
 import AddDeptModal from '../components/AddDeptModal';
 import EditDeptModal from '../components/EditDeptModal';
 
 export default function Departments() {
-  const { userType, rights } = useRights();
+  const { currentUser, userType, rights } = useRights();
   const isAdmin = userType === 'ADMIN' || userType === 'SUPERADMIN';
 
   const [depts, setDepts]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [showAdd, setShowAdd]       = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // dept row being edited
+  const [editTarget, setEditTarget] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const { data } = await getDepts(userType);
-    setDepts(data);
+    setDepts(data || []);
     setLoading(false);
   }, [userType]);
 
   useEffect(() => { load(); }, [load]);
 
+  // NEW: Handle Delete
+  const handleDelete = async (dept) => {
+    if (window.confirm(`Are you sure you want to delete department ${dept.deptcode}?`)) {
+      const { error } = await softDeleteDept(dept.deptcode, currentUser?.email);
+      if (!error) {
+        load();
+      } else {
+        alert('Failed to delete department. Check console.');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
-
       {/* ── Page header ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -75,7 +78,7 @@ export default function Departments() {
                 <Th>Dept Code</Th>
                 <Th>Department Name</Th>
                 {isAdmin && <Th>Status</Th>}
-                {rights?.DEPT_EDIT === 1 && <Th align="right">Actions</Th>}
+                {(rights?.DEPT_EDIT === 1 || rights?.DEPT_DEL === 1) && <Th align="right">Actions</Th>}
               </tr>
             </thead>
             <tbody>
@@ -91,19 +94,28 @@ export default function Departments() {
                   </Td>
                   <Td>{dept.deptname}</Td>
                   {isAdmin && (
-                    <Td>
-                      <StatusBadge status={dept.record_status} />
-                    </Td>
+                    <Td><StatusBadge status={dept.record_status} /></Td>
                   )}
-                  {rights?.DEPT_EDIT === 1 && (
+                  {(rights?.DEPT_EDIT === 1 || rights?.DEPT_DEL === 1) && (
                     <Td align="right">
-                      <button
-                        onClick={() => setEditTarget(dept)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 transition-colors cursor-pointer"
-                      >
-                        <Pencil size={10} />
-                        Edit
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        {rights?.DEPT_EDIT === 1 && (
+                          <button
+                            onClick={() => setEditTarget(dept)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 transition-colors cursor-pointer"
+                          >
+                            <Pencil size={10} /> Edit
+                          </button>
+                        )}
+                        {rights?.DEPT_DEL === 1 && dept.record_status === 'ACTIVE' && (
+                          <button
+                            onClick={() => handleDelete(dept)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-rose-500 uppercase tracking-widest border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={10} /> Delete
+                          </button>
+                        )}
+                      </div>
                     </Td>
                   )}
                 </tr>
@@ -114,40 +126,25 @@ export default function Departments() {
       </div>
 
       {/* ── Modals ── */}
-      {showAdd && (
-        <AddDeptModal onClose={() => setShowAdd(false)} onSuccess={load} />
-      )}
-      {editTarget && (
-        <EditDeptModal dept={editTarget} onClose={() => setEditTarget(null)} onSuccess={load} />
-      )}
+      {showAdd && <AddDeptModal onClose={() => setShowAdd(false)} onSuccess={load} />}
+      {editTarget && <EditDeptModal dept={editTarget} onClose={() => setEditTarget(null)} onSuccess={load} />}
     </div>
   );
 }
 
-/* ── Small layout helpers ── */
 function Th({ children, align = 'left' }) {
-  return (
-    <th className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-${align}`}>
-      {children}
-    </th>
-  );
+  return <th className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-${align}`}>{children}</th>;
 }
 
 function Td({ children, align = 'left' }) {
-  return (
-    <td className={`px-4 py-3 text-sm text-slate-700 text-${align}`}>
-      {children}
-    </td>
-  );
+  return <td className={`px-4 py-3 text-sm text-slate-700 text-${align}`}>{children}</td>;
 }
 
 function StatusBadge({ status }) {
   const active = status === 'ACTIVE';
   return (
     <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
-      active
-        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-        : 'bg-slate-100 text-slate-400 border border-slate-200'
+      active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
     }`}>
       {status}
     </span>
