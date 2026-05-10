@@ -8,6 +8,8 @@
 //     preserved unchanged until M2 PR-03 replaces them
 // ─────────────────────────────────────────────────────────────────────────────
 
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
@@ -307,8 +309,8 @@ function App() {
             <Route path="/employees/:empno" element={<EmployeeDetailPage />} />
 
             {/* Sprint 1 placeholders — M2 will replace in PR-02 and PR-03 */}
-            <Route path="/departments" element={<DepartmentList />} />
-            <Route path="/jobs" element={<JobList />} />
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/jobs" element={<Jobs />} />
             <Route path="/jobhistory" element={<JobHistoryList />} />
 
             {/* PR-04: adminOnly route guard */}
