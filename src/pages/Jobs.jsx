@@ -1,4 +1,13 @@
 // src/pages/Jobs.jsx
+// Sprint 2 — M2 PR-03: feat/ui-job-dept
+// M4 PR-03: feat/rights-job-dept — migrated to hasRight() from UserRightsContext
+// ─────────────────────────────────────────────────────────────────────────────
+// Features:
+//   - Add button gated by hasRight('JOB_ADD')
+//   - Edit button gated by hasRight('JOB_EDIT')
+//   - Delete button gated by hasRight('JOB_DEL')
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useState, useCallback } from 'react';
 import { Briefcase, Plus, Pencil, Trash2 } from 'lucide-react';
 import { getJobs, softDeleteJob } from '../lib/jobService';
@@ -8,19 +17,13 @@ import EditJobModal from '../components/EditJobModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 export default function Jobs() {
-  const { currentUser, rights } = useRights();
-  const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
-  const isSuperAdmin = currentUser?.user_type === 'SUPERADMIN';
-  
-  // STRICTER GATING: Only Superadmins can delete
-  const canDelete = isSuperAdmin;
-  const canEdit = isAdmin || rights?.JOB_EDIT === 1;
-  const canAdd = isAdmin || rights?.JOB_ADD === 1;
+  // M4 PR-03: replaced manual role checks + raw rights map with hasRight()
+  const { currentUser, hasRight } = useRights();
 
-  const [jobs, setJobs]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [showAdd, setShowAdd]     = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
+  const [jobs, setJobs]               = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [showAdd, setShowAdd]         = useState(false);
+  const [editTarget, setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
@@ -51,7 +54,8 @@ export default function Jobs() {
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Jobs</h1>
           <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Manage job codes & descriptions</p>
         </div>
-        {canAdd && (
+        {/* M4 PR-03: hasRight('JOB_ADD') replaces canAdd = isAdmin || rights?.JOB_ADD === 1 */}
+        {hasRight('JOB_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest rounded shadow-sm transition-all"
@@ -71,7 +75,8 @@ export default function Jobs() {
                 <Th>Job Code</Th>
                 <Th>Description</Th>
                 <Th>Status</Th>
-                {(canEdit || canDelete) && <Th align="right">Actions</Th>}
+                {/* M4 PR-03: hasRight() replaces canEdit / canDelete local vars */}
+                {(hasRight('JOB_EDIT') || hasRight('JOB_DEL')) && <Th align="right">Actions</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -87,11 +92,12 @@ export default function Jobs() {
                   </Td>
                   <Td>{job.jobdesc}</Td>
                   <Td><StatusBadge status={job.record_status || 'ACTIVE'} /></Td>
-                  
-                  {(canEdit || canDelete) && (
+
+                  {(hasRight('JOB_EDIT') || hasRight('JOB_DEL')) && (
                     <Td align="right">
                       <div className="flex items-center justify-end gap-2">
-                        {canEdit && job.record_status !== 'INACTIVE' && (
+                        {/* M4 PR-03: hasRight('JOB_EDIT') replaces canEdit */}
+                        {hasRight('JOB_EDIT') && job.record_status !== 'INACTIVE' && (
                           <button
                             onClick={() => setEditTarget(job)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer rounded"
@@ -99,7 +105,8 @@ export default function Jobs() {
                             <Pencil size={10} /> Edit
                           </button>
                         )}
-                        {canDelete && job.record_status !== 'INACTIVE' && (
+                        {/* M4 PR-03: hasRight('JOB_DEL') replaces canDelete = isSuperAdmin */}
+                        {hasRight('JOB_DEL') && job.record_status !== 'INACTIVE' && (
                           <button
                             onClick={() => setDeleteTarget(job)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-rose-500 uppercase tracking-widest border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer rounded"
