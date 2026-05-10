@@ -10,7 +10,10 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal';
 export default function Jobs() {
   const { currentUser, rights } = useRights();
   const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
-  const canDelete = isAdmin || rights?.JOB_DEL === 1;
+  const isSuperAdmin = currentUser?.user_type === 'SUPERADMIN';
+  
+  // STRICTER GATING: Only Superadmins can delete
+  const canDelete = isSuperAdmin;
   const canEdit = isAdmin || rights?.JOB_EDIT === 1;
   const canAdd = isAdmin || rights?.JOB_ADD === 1;
 

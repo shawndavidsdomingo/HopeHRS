@@ -1,13 +1,5 @@
 // src/App.jsx
-// Sprint 2 — M2 PR-03: feat/ui-job-dept
-// ─────────────────────────────────────────────────────────────────────────────
-// Changes from PR-01:
-//   - Removed inline JobList + DepartmentList + JobHistoryList placeholders
-//   - Imported Jobs, Departments, JobHistory from their page files
-//   - Routes /jobs, /departments, /jobhistory now render dedicated page components
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import { UserRightsProvider } from './contexts/UserRightsContext';
@@ -167,13 +159,18 @@ function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingError, setPendingError] = useState('');
+  
+  // FIX: This stops the app from refreshing the database every time you switch tabs
+  const activeUserId = useRef(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkLoginGuard(session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignore background refreshes
+      if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
       checkLoginGuard(session);
     });
 
@@ -181,32 +178,42 @@ function App() {
   }, []);
 
   const checkLoginGuard = async (session) => {
-    if (session) {
-      const { data: userRow, error } = await supabase
-        .from('hr_user')
-        .select('record_status, user_type')
-        .eq('email', session.user.email)
-        .single();
+    if (!session) {
+      activeUserId.current = null;
+      setSession(null);
+      setLoading(false);
+      return;
+    }
 
-      if (error) {
-        console.error('[checkLoginGuard] Query error:', error.message, '| hint:', error.hint, '| details:', error.details);
-      } else {
-        console.log('[checkLoginGuard] Found user row:', userRow);
-      }
+    // FIX: If we already verified this exact user, don't run the DB query again!
+    if (activeUserId.current === session.user.id) {
+      setSession(session);
+      setLoading(false);
+      return;
+    }
 
-      if (userRow?.record_status === 'ACTIVE') {
-        setPendingError('');
-        setSession(session);
-      } else {
-        await supabase.auth.signOut();
-        setPendingError(
-          error
-            ? 'Unable to verify your account. Please contact your HR administrator.'
-            : 'Your account is pending activation by an HR administrator.'
-        );
-        setSession(null);
-      }
+    const { data: userRow, error } = await supabase
+      .from('hr_user')
+      .select('record_status, user_type')
+      .eq('email', session.user.email)
+      .single();
+
+    if (error) {
+      console.error('[checkLoginGuard] Query error:', error.message);
+    }
+
+    if (userRow?.record_status === 'ACTIVE') {
+      setPendingError('');
+      setSession(session);
+      activeUserId.current = session.user.id; // Mark as verified
     } else {
+      await supabase.auth.signOut();
+      activeUserId.current = null;
+      setPendingError(
+        error
+          ? 'Unable to verify your account. Please contact your HR administrator.'
+          : 'Your account is pending activation by an HR administrator.'
+      );
       setSession(null);
     }
     setLoading(false);
