@@ -1,6 +1,7 @@
+// src/tests/TestRights.jsx
 import { useRights } from '../contexts/UserRightsContext';
 
-export default function Employees() {
+export default function TestRights() {
   const { currentUser, rights } = useRights();
 
   console.log('=== PR-04: UserRightsContext ===');
@@ -10,7 +11,8 @@ export default function Employees() {
 
   return (
     <div style={{ padding: 24 }}>
-      <h2>Rights Debug</h2>
+      <h2>PR-04 — Rights Debug</h2>
+      <p>Rights count: {Object.keys(rights).length} (expect 17)</p>
       <pre>{JSON.stringify({ currentUser, rights }, null, 2)}</pre>
     </div>
   );
