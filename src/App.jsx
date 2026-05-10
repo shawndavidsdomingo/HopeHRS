@@ -1,11 +1,10 @@
 // src/App.jsx
-// Sprint 2 — M2 PR-01: feat/ui-employee-list
+// Sprint 2 — M2 PR-03: feat/ui-job-dept
 // ─────────────────────────────────────────────────────────────────────────────
-// Changes from previous version:
-//   - Removed inline EmployeeList const — now imported from pages/Employees.jsx
-//   - Route /employees now renders <Employees /> from the page file
-//   - All other inline components (JobList, DepartmentList, JobHistoryList)
-//     preserved unchanged until M2 PR-03 replaces them
+// Changes from PR-01:
+//   - Removed inline JobList + DepartmentList + JobHistoryList placeholders
+//   - Imported Jobs, Departments, JobHistory from their page files
+//   - Routes /jobs, /departments, /jobhistory now render dedicated page components
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -18,6 +17,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
 import Employees from './pages/Employees';
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
+import JobHistory from './pages/JobHistory';
 import DeletedItems from './pages/DeletedItems';
 import EmployeeDetailPage from './pages/EmployeeDetailPage'
 import Admin from './pages/Admin';
@@ -160,80 +162,6 @@ const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New
   </div>
 );
 
-// ── JOBS (Sprint 1 placeholder — M2 PR-03 will replace) ───────
-const JobList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchJobs() {
-      const { data, error } = await supabase.from('job').select('*').eq('record_status', 'ACTIVE');
-      if (error) console.error('Job Fetch Error:', error.message);
-      setData(data || []);
-      setLoading(false);
-    }
-    fetchJobs();
-  }, []);
-
-  const cols = [
-    { header: 'Code', key: 'jobcode', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Job Description', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.jobdesc}</span> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Job Catalogue" subtitle="Approved positions" columns={cols} data={data} loading={loading} />;
-};
-
-// ── DEPARTMENTS (Sprint 1 placeholder — M2 PR-03 will replace) ─
-const DepartmentList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.from('department').select('*').eq('record_status', 'ACTIVE').then(({ data }) => {
-      setData(data || []);
-      setLoading(false);
-    });
-  }, []);
-
-  const cols = [
-    { header: 'Dept Code', key: 'deptcode', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Department Name', render: (r) => <span className="font-semibold text-slate-800">{r.deptname}</span> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Departments" subtitle="Organizational units" columns={cols} data={data} loading={loading} />;
-};
-
-// ── JOB HISTORY (Sprint 1 placeholder — M2 PR-02 will replace) ─
-const JobHistoryList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchHistory() {
-      const { data, error } = await supabase.from('jobhistory').select('*');
-      if (error) console.error('Database Error:', error.message);
-      setData(data || []);
-      setLoading(false);
-    }
-    fetchHistory();
-  }, []);
-
-  const cols = [
-    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Job Code', key: 'jobcode', className: 'font-mono text-indigo-400 text-xs font-bold' },
-    { header: 'Department', key: 'deptcode', className: 'text-slate-500 text-sm' },
-    { header: 'Effective Date', key: 'effdate', className: 'font-mono text-slate-500 text-xs' },
-    { header: 'Salary', render: (r) => <span className="font-mono text-sm text-slate-700 font-semibold">${Number(r.salary || 0).toLocaleString()}</span> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-  ];
-
-  return <DataTable title="Employment History" subtitle="Complete job assignment records" columns={cols} data={data} loading={loading} />;
-};
-
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
   const [session, setSession] = useState(null);
@@ -306,10 +234,11 @@ function App() {
 
             <Route path="/employees/:empno" element={<EmployeeDetailPage />} />
 
-            {/* Sprint 1 placeholders — M2 will replace in PR-02 and PR-03 */}
-            <Route path="/departments" element={<DepartmentList />} />
-            <Route path="/jobs" element={<JobList />} />
-            <Route path="/jobhistory" element={<JobHistoryList />} />
+            {/* M2 PR-03: Full JobListPage + DeptListPage with rights gating */}
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/jobs" element={<Jobs />} />
+            {/* M2 PR-03: Moved JobHistoryList out of App.jsx into its own page */}
+            <Route path="/jobhistory" element={<JobHistory />} />
 
             {/* PR-04: adminOnly route guard */}
             <Route path="/deleted-items" element={<ProtectedRoute adminOnly><DeletedItems /></ProtectedRoute>} />
