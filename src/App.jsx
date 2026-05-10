@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
+import { UserRightsProvider } from './contexts/UserRightsContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
+import DeletedItems from './pages/DeletedItems';
+import Admin from './pages/Admin';
 import TestEmployee from './tests/TestEmployee';
 import TestJobHistory from './tests/TestJobHistory';
 import TestJobDept from './tests/TestJobDept';
+import TestRights from './tests/TestRights';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -23,7 +28,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ── Separation Badge (for employees who have left) ────────────
+// ── Separation Badge ──────────────────────────────────────────
 const SepBadge = ({ date }) => {
   if (!date) return <span className="text-slate-300 text-xs">—</span>;
   return (
@@ -272,10 +277,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // M4 – Sprint 1: checkLoginGuard queries hr_user by email.
-  // If you still get a 400, fix it in Supabase Dashboard:
-  //   Table Editor → hr_user → RLS → disable RLS (dev) OR
-  //   add policy: FOR SELECT TO authenticated USING (true)
   const checkLoginGuard = async (session) => {
     if (session) {
       const { data: userRow, error } = await supabase
@@ -284,7 +285,6 @@ function App() {
         .eq('email', session.user.email)
         .single();
 
-      // Detailed log to help diagnose any remaining issues
       if (error) {
         console.error('[checkLoginGuard] Query error:', error.message, '| hint:', error.hint, '| details:', error.details);
       } else {
@@ -312,31 +312,40 @@ function App() {
   if (loading) return null;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={
-          !session
-            ? <Login pendingError={pendingError} />
-            : <Navigate to="/employees" replace />
-        } />
-        <Route path="/register" element={<Register />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+    <UserRightsProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={
+            !session
+              ? <Login pendingError={pendingError} />
+              : <Navigate to="/employees" replace />
+          } />
+          <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-        <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<Navigate to="/employees" replace />} />
-          <Route path="/employees" element={<EmployeeList />} />
-          <Route path="/departments" element={<DepartmentList />} />
-          <Route path="/jobs" element={<JobList />} />
-          <Route path="/jobhistory" element={<JobHistoryList />} />
-        </Route>
+          <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
+            <Route path="/" element={<Navigate to="/employees" replace />} />
+            <Route path="/employees" element={<EmployeeList />} />
+            <Route path="/departments" element={<DepartmentList />} />
+            <Route path="/jobs" element={<JobList />} />
+            <Route path="/jobhistory" element={<JobHistoryList />} />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-        <Route path="/test-employee" element={<TestEmployee />} /> {/* Temporary route for testing employeeService */}
-        <Route path="/test-jobhistory" element={<TestJobHistory />} /> {/* Temporary route for testing jobHistoryService */}
-        <Route path="/test-jobdept" element={<TestJobDept />} /> {/* Temporary route for testing jobService and departmentService */}
-        
-      </Routes>
-    </BrowserRouter>
+            {/* PR-04: adminOnly route guard — USER accounts redirected to /employees */}
+            <Route path="/deleted-items" element={<ProtectedRoute adminOnly><DeletedItems /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
+
+          {/* [TESTING ONLY - REMOVE BEFORE PUSH] */}
+          <Route path="/test-employee" element={<TestEmployee />} />
+          <Route path="/test-jobhistory" element={<TestJobHistory />} />
+          <Route path="/test-jobdept" element={<TestJobDept />} />
+          <Route path="/test-rights" element={<TestRights />} />
+
+        </Routes>
+      </BrowserRouter>
+    </UserRightsProvider>
   );
 }
 
