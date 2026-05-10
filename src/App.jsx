@@ -1,3 +1,13 @@
+// src/App.jsx
+// Sprint 2 — M2 PR-01: feat/ui-employee-list
+// ─────────────────────────────────────────────────────────────────────────────
+// Changes from previous version:
+//   - Removed inline EmployeeList const — now imported from pages/Employees.jsx
+//   - Route /employees now renders <Employees /> from the page file
+//   - All other inline components (JobList, DepartmentList, JobHistoryList)
+//     preserved unchanged until M2 PR-03 replaces them
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
@@ -7,6 +17,7 @@ import AppShell from './components/AppShell';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
+import Employees from './pages/Employees';
 import DeletedItems from './pages/DeletedItems';
 import Admin from './pages/Admin';
 import TestEmployee from './tests/TestEmployee';
@@ -148,33 +159,7 @@ const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New
   </div>
 );
 
-// ── EMPLOYEES ─────────────────────────────────────────────────
-const EmployeeList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.from('employee').select('*').eq('record_status', 'ACTIVE').then(({ data }) => {
-      setData(data || []);
-      setLoading(false);
-    });
-  }, []);
-
-  const cols = [
-    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Full Name', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.lastname}, {r.firstname}</span> },
-    { header: 'Gender', render: (r) => <GenderPill g={r.gender} /> },
-    { header: 'Birthdate', key: 'birthdate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Hire Date', key: 'hiredate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Employee Directory" subtitle="All active personnel on record" columns={cols} data={data} loading={loading} />;
-};
-
-// ── JOBS ──────────────────────────────────────────────────────
+// ── JOBS (Sprint 1 placeholder — M2 PR-03 will replace) ───────
 const JobList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -191,25 +176,15 @@ const JobList = () => {
 
   const cols = [
     { header: 'Code', key: 'jobcode', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Position Title', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.jobtitle}</span> },
-    {
-      header: 'Salary Range',
-      render: (r) => (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-slate-500">${Number(r.lowsal || 0).toLocaleString()}</span>
-          <span className="text-slate-300 text-xs">—</span>
-          <span className="font-mono text-xs text-slate-500">${Number(r.highsal || 0).toLocaleString()}</span>
-        </div>
-      ),
-    },
+    { header: 'Job Description', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.jobdesc}</span> },
     { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
     { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
   ];
 
-  return <DataTable title="Job Catalogue" subtitle="Approved positions and compensation bands" columns={cols} data={data} loading={loading} />;
+  return <DataTable title="Job Catalogue" subtitle="Approved positions" columns={cols} data={data} loading={loading} />;
 };
 
-// ── DEPARTMENTS ───────────────────────────────────────────────
+// ── DEPARTMENTS (Sprint 1 placeholder — M2 PR-03 will replace) ─
 const DepartmentList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,17 +197,16 @@ const DepartmentList = () => {
   }, []);
 
   const cols = [
-    { header: 'Dept Code', key: 'deptno', className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Dept Code', key: 'deptcode', className: 'font-mono text-slate-400 text-xs' },
     { header: 'Department Name', render: (r) => <span className="font-semibold text-slate-800">{r.deptname}</span> },
-    { header: 'Location', key: 'location', className: 'text-slate-500 text-sm' },
     { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
     { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
   ];
 
-  return <DataTable title="Departments" subtitle="Organizational units and locations" columns={cols} data={data} loading={loading} />;
+  return <DataTable title="Departments" subtitle="Organizational units" columns={cols} data={data} loading={loading} />;
 };
 
-// ── JOB HISTORY ───────────────────────────────────────────────
+// ── JOB HISTORY (Sprint 1 placeholder — M2 PR-02 will replace) ─
 const JobHistoryList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -256,7 +230,7 @@ const JobHistoryList = () => {
     { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
   ];
 
-  return <DataTable title="Employment History" subtitle="Complete job assignment records across all departments" columns={cols} data={data} loading={loading} />;
+  return <DataTable title="Employment History" subtitle="Complete job assignment records" columns={cols} data={data} loading={loading} />;
 };
 
 // ── APP ROOT ──────────────────────────────────────────────────
@@ -325,12 +299,16 @@ function App() {
 
           <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
             <Route path="/" element={<Navigate to="/employees" replace />} />
-            <Route path="/employees" element={<EmployeeList />} />
+
+            {/* M2 PR-01: Full EmployeeListPage with rights gating */}
+            <Route path="/employees" element={<Employees />} />
+
+            {/* Sprint 1 placeholders — M2 will replace in PR-02 and PR-03 */}
             <Route path="/departments" element={<DepartmentList />} />
             <Route path="/jobs" element={<JobList />} />
             <Route path="/jobhistory" element={<JobHistoryList />} />
 
-            {/* PR-04: adminOnly route guard — USER accounts redirected to /employees */}
+            {/* PR-04: adminOnly route guard */}
             <Route path="/deleted-items" element={<ProtectedRoute adminOnly><DeletedItems /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
           </Route>
@@ -342,7 +320,6 @@ function App() {
           <Route path="/test-jobhistory" element={<TestJobHistory />} />
           <Route path="/test-jobdept" element={<TestJobDept />} />
           <Route path="/test-rights" element={<TestRights />} />
-
         </Routes>
       </BrowserRouter>
     </UserRightsProvider>
