@@ -19,7 +19,6 @@ const StatusBadge = ({ status }) => {
 };
 
 export default function JobHistory() {
-  // FIX: userType is destructured correctly from currentUser
   const { currentUser, rights } = useRights();
   const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
   const canDelete = isAdmin || rights?.JOBHIST_DEL === 1;
@@ -48,7 +47,6 @@ export default function JobHistory() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
 
-    // Use your specific JobHistory service which requires a composite pk object
     const pk = {
       empno: deleteTarget.empno,
       jobcode: deleteTarget.jobcode,
@@ -58,8 +56,8 @@ export default function JobHistory() {
     const { error } = await softDeleteJobHistory(pk, currentUser?.email);
 
     if (!error) {
-      fetchHistory(); // Refresh the table
-      setDeleteTarget(null); // Close modal
+      fetchHistory();
+      setDeleteTarget(null);
     } else {
       console.error('Failed to delete job history.');
       alert('Failed to delete job history. Check console.');
@@ -68,13 +66,11 @@ export default function JobHistory() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      {/* ── Page header ── */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Job History</h1>
         <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Historical Employee Placements</p>
       </div>
 
-      {/* ── Table ── */}
       <div className="bg-white border border-slate-200 shadow-sm overflow-auto rounded-lg flex-1">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -120,7 +116,6 @@ export default function JobHistory() {
         </table>
       </div>
 
-      {/* ── Delete UI Modal ── */}
       {deleteTarget && (
         <DeleteConfirmModal
           title="Delete Job History"

@@ -29,13 +29,12 @@ export default function Departments() {
 
   useEffect(() => { load(); }, [load]);
 
-  // NEW: UI Modal Delete handler
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     const { error } = await softDeleteDept(deleteTarget.deptcode, currentUser?.email);
     if (!error) {
-      load(); // Refresh the list
-      setDeleteTarget(null); // Close the modal
+      load();
+      setDeleteTarget(null);
     } else {
       console.error('Failed to delete department.');
       alert('Failed to delete department. Check console.');
@@ -44,7 +43,6 @@ export default function Departments() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Departments</h1>
@@ -60,7 +58,6 @@ export default function Departments() {
         )}
       </div>
 
-      {/* ── Data Table ── */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-auto">
         {loading ? (
           <div className="p-12 text-center text-xs text-slate-400 font-medium animate-pulse">Loading departments...</div>
@@ -117,7 +114,6 @@ export default function Departments() {
         )}
       </div>
 
-      {/* ── Modals ── */}
       {showAdd && <AddDeptModal onClose={() => setShowAdd(false)} onSuccess={load} />}
       {editTarget && <EditDeptModal dept={editTarget} onClose={() => setEditTarget(null)} onSuccess={load} />}
       {deleteTarget && (
