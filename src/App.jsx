@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
 import DeletedItems from './pages/DeletedItems';
 import Admin from './pages/Admin';
+import Employees from './pages/Employees';
 import TestEmployee from './tests/TestEmployee';
 import TestJobHistory from './tests/TestJobHistory';
 import TestJobDept from './tests/TestJobDept';
@@ -24,30 +25,6 @@ const StatusBadge = ({ status }) => {
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${map[status] ?? map.INACTIVE}`}>
       {status}
-    </span>
-  );
-};
-
-// ── Separation Badge ──────────────────────────────────────────
-const SepBadge = ({ date }) => {
-  if (!date) return <span className="text-slate-300 text-xs">—</span>;
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-semibold">
-      {date}
-    </span>
-  );
-};
-
-// ── Gender pill ───────────────────────────────────────────────
-const GenderPill = ({ g }) => {
-  const isMale = g === 'M';
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-wide ${
-      isMale
-        ? 'bg-blue-50 text-blue-600 border border-blue-200'
-        : 'bg-pink-50 text-pink-600 border border-pink-200'
-    }`}>
-      {isMale ? 'Male' : 'Female'}
     </span>
   );
 };
@@ -147,32 +124,6 @@ const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New
     </div>
   </div>
 );
-
-// ── EMPLOYEES ─────────────────────────────────────────────────
-const EmployeeList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.from('employee').select('*').eq('record_status', 'ACTIVE').then(({ data }) => {
-      setData(data || []);
-      setLoading(false);
-    });
-  }, []);
-
-  const cols = [
-    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Full Name', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.lastname}, {r.firstname}</span> },
-    { header: 'Gender', render: (r) => <GenderPill g={r.gender} /> },
-    { header: 'Birthdate', key: 'birthdate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Hire Date', key: 'hiredate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Employee Directory" subtitle="All active personnel on record" columns={cols} data={data} loading={loading} />;
-};
 
 // ── JOBS ──────────────────────────────────────────────────────
 const JobList = () => {
@@ -325,7 +276,7 @@ function App() {
 
           <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
             <Route path="/" element={<Navigate to="/employees" replace />} />
-            <Route path="/employees" element={<EmployeeList />} />
+            <Route path="/employees" element={<Employees />} />
             <Route path="/departments" element={<DepartmentList />} />
             <Route path="/jobs" element={<JobList />} />
             <Route path="/jobhistory" element={<JobHistoryList />} />
