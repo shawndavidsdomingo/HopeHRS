@@ -1,25 +1,34 @@
+// src/components/AppShell.jsx
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Briefcase, Building, History, LogOut, ChevronRight } from 'lucide-react';
+import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { useRights } from '../contexts/UserRightsContext';
 
 export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentUser } = useRights();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  // M4 – Sprint 1: Uncommented menuItems (was defined but commented out, causing ReferenceError)
-  const menuItems = [
+  // Base items visible to everyone
+  const baseMenuItems = [
     { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
     { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
     { path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> },
     { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
   ];
 
-  const currentPage = menuItems.find(i => i.path === location.pathname)?.label ?? '';
+  // Conditionally add Deleted Items for ADMIN / SUPERADMIN
+  const menuItems = [...baseMenuItems];
+  if (currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN') {
+    menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
+  }
+
+  const currentPage = menuItems.find(i => i.path === location.pathname)?.label ?? 'Portal';
 
   return (
     <div className="flex h-screen bg-[#f0f2f5] overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
@@ -45,7 +54,7 @@ export default function AppShell() {
           <p className="px-2 mb-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.18em]">Menu</p>
 
           {menuItems.map((item) => {
-            const active = location.pathname === item.path;
+            const active = location.pathname.includes(item.path); // Use includes to catch sub-routes
             return (
               <Link
                 key={item.path}
@@ -87,7 +96,7 @@ export default function AppShell() {
             <span className="text-slate-700 font-semibold">{currentPage}</span>
           </div>
           <div className="w-7 h-7 bg-slate-900 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
-            A
+            {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
         </header>
 

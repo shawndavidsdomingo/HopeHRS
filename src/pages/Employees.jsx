@@ -12,6 +12,7 @@
 //   - Delete button gated by rights.EMP_DEL === 1 (SUPERADMIN only)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getEmployees } from '../lib/employeeService';
@@ -160,13 +161,13 @@ export default function Employees() {
           )}
 
           {rights.EMP_DEL === 1 && r.record_status === 'ACTIVE' && (
-            <button
-              onClick={() => setDeleteTarget(r)}
-              className="text-[10px] font-bold text-slate-300 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"
-            >
-              Delete
-            </button>
-          )}
+          <button
+            onClick={() => setDeleteTarget(r)}
+            className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        )}
         </div>
       ),
     },
