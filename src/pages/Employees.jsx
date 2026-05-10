@@ -1,15 +1,16 @@
 // src/pages/Employees.jsx
 // Sprint 2 — M2 PR-01: feat/ui-employee-list
+// M4 PR-02: feat/rights-employee-jh — migrated to hasRight() from UserRightsContext
 // ─────────────────────────────────────────────────────────────────────────────
 // Full EmployeeListPage replacing the Sprint 1 placeholder.
 //
 // Features:
 //   - Fetches employees via getEmployees(userType) from employeeService.js
-//   - Stamp column visible to ADMIN and SUPERADMIN only
+//   - Stamp column visible to ADMIN and SUPERADMIN only (isAdminOrAbove)
 //   - INACTIVE rows hidden for USER (enforced by service + RLS)
-//   - Add button gated by rights.EMP_ADD === 1
-//   - Edit button gated by rights.EMP_EDIT === 1
-//   - Delete button gated by rights.EMP_DEL === 1 (SUPERADMIN only)
+//   - Add button gated by hasRight('EMP_ADD')
+//   - Edit button gated by hasRight('EMP_EDIT')
+//   - Delete button gated by hasRight('EMP_DEL')
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Trash2 } from 'lucide-react';
@@ -92,14 +93,14 @@ const EmptyState = ({ cols }) => (
 
 // ── Employees Page ────────────────────────────────────────────
 export default function Employees() {
-  const { currentUser, rights } = useRights();
+  // M4 PR-02: destructure hasRight + isAdminOrAbove instead of raw rights map
+  const { currentUser, hasRight, isAdminOrAbove } = useRights();
+
   const [data, setData]                 = useState([]);
   const [loading, setLoading]           = useState(true);
   const [showAdd, setShowAdd]           = useState(false);
   const [editTarget, setEditTarget]     = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-
-  const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
 
   const fetchData = async () => {
     setLoading(true);
@@ -112,38 +113,29 @@ export default function Employees() {
     if (currentUser) fetchData();
   }, [currentUser]);
 
-  // Build columns dynamically based on user type and rights
-  // Build columns dynamically based on user type and rights
   const cols = [
-    { header: 'Emp No',     key: 'empno',     className: 'font-mono text-slate-400 text-xs' },
-    
-    // M2 Requirement: Split Name Columns
-    { header: 'Last Name',  key: 'lastname',  className: 'font-semibold text-slate-800' },
-    { header: 'First Name', key: 'firstname', className: 'font-semibold text-slate-800' },
-    
-    { header: 'Gender',     render: (r) => <GenderPill g={r.gender} /> },
-    
-    // M2 Requirement: Current Job (ensure job_title is in your service/view)
+    { header: 'Emp No',      key: 'empno',     className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Last Name',   key: 'lastname',  className: 'font-semibold text-slate-800' },
+    { header: 'First Name',  key: 'firstname', className: 'font-semibold text-slate-800' },
+    { header: 'Gender',      render: (r) => <GenderPill g={r.gender} /> },
     { header: 'Current Job', key: 'job_title', className: 'text-slate-600 text-sm' },
-    
-    { header: 'Hire Date',  key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
-    { header: 'Status',     render: (r) => <StatusBadge status={r.record_status} /> },
+    { header: 'Hire Date',   key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
+    { header: 'Separation',  render: (r) => <SepBadge date={r.sepdate} /> },
+    { header: 'Status',      render: (r) => <StatusBadge status={r.record_status} /> },
 
-    // Stamp column — ADMIN and SUPERADMIN only
-    ...(isAdmin ? [{
+    // Stamp column — ADMIN and SUPERADMIN only (M4 PR-02: uses isAdminOrAbove)
+    ...(isAdminOrAbove ? [{
       header: 'Stamp',
       key: 'stamp',
       className: 'text-slate-400 font-mono text-[10px]',
     }] : []),
 
-    // Actions column — Now includes the "View" link for PR-02
+    // Actions column
     {
       header: '',
       align: 'right',
       render: (r) => (
         <div className="flex items-center justify-end gap-4">
-          {/* Link to Detail Page */}
           <Link
             to={`/employees/${r.empno}`}
             className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest transition-colors cursor-pointer"
@@ -151,7 +143,8 @@ export default function Employees() {
             View
           </Link>
 
-          {rights.EMP_EDIT === 1 && (
+          {/* M4 PR-02: hasRight('EMP_EDIT') replaces rights.EMP_EDIT === 1 */}
+          {hasRight('EMP_EDIT') && (
             <button
               onClick={() => setEditTarget(r)}
               className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer"
@@ -160,14 +153,15 @@ export default function Employees() {
             </button>
           )}
 
-          {rights.EMP_DEL === 1 && r.record_status === 'ACTIVE' && (
-          <button
-            onClick={() => setDeleteTarget(r)}
-            className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"
-          >
-            <Trash2 size={12} /> Delete
-          </button>
-        )}
+          {/* M4 PR-02: hasRight('EMP_DEL') replaces rights.EMP_DEL === 1 */}
+          {hasRight('EMP_DEL') && r.record_status === 'ACTIVE' && (
+            <button
+              onClick={() => setDeleteTarget(r)}
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"
+            >
+              <Trash2 size={12} /> Delete
+            </button>
+          )}
         </div>
       ),
     },
@@ -181,7 +175,8 @@ export default function Employees() {
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Directory</h2>
           <p className="text-sm text-slate-400 mt-1 font-medium">All active personnel on record</p>
         </div>
-        {rights.EMP_ADD === 1 && (
+        {/* M4 PR-02: hasRight('EMP_ADD') replaces rights.EMP_ADD === 1 */}
+        {hasRight('EMP_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold tracking-[0.12em] uppercase transition-colors duration-150 cursor-pointer shadow-sm"
