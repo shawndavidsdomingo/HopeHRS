@@ -21,7 +21,9 @@ const StatusBadge = ({ status }) => {
 export default function JobHistory() {
   const { currentUser, rights } = useRights();
   const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
-  const canDelete = isAdmin || rights?.JOBHIST_DEL === 1;
+  
+  // STRICTER GATING: Only Superadmins can delete job history
+  const canDelete = currentUser?.user_type === 'SUPERADMIN';
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
