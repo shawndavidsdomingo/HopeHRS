@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getEmployees } from '../lib/employeeService';
 import { useRights } from '../contexts/UserRightsContext';
 import AddEmployeeModal from '../components/AddEmployeeModal';
@@ -111,26 +112,44 @@ export default function Employees() {
   }, [currentUser]);
 
   // Build columns dynamically based on user type and rights
+  // Build columns dynamically based on user type and rights
   const cols = [
     { header: 'Emp No',     key: 'empno',     className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Full Name',  render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.lastname}, {r.firstname}</span> },
+    
+    // M2 Requirement: Split Name Columns
+    { header: 'Last Name',  key: 'lastname',  className: 'font-semibold text-slate-800' },
+    { header: 'First Name', key: 'firstname', className: 'font-semibold text-slate-800' },
+    
     { header: 'Gender',     render: (r) => <GenderPill g={r.gender} /> },
-    { header: 'Birthdate',  key: 'birthdate', className: 'text-slate-500 font-mono text-xs' },
+    
+    // M2 Requirement: Current Job (ensure job_title is in your service/view)
+    { header: 'Current Job', key: 'job_title', className: 'text-slate-600 text-sm' },
+    
     { header: 'Hire Date',  key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
     { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
     { header: 'Status',     render: (r) => <StatusBadge status={r.record_status} /> },
+
     // Stamp column — ADMIN and SUPERADMIN only
     ...(isAdmin ? [{
       header: 'Stamp',
       key: 'stamp',
       className: 'text-slate-400 font-mono text-[10px]',
     }] : []),
-    // Actions column — shown when user has at least one action right
-    ...((rights.EMP_EDIT === 1 || rights.EMP_DEL === 1) ? [{
+
+    // Actions column — Now includes the "View" link for PR-02
+    {
       header: '',
       align: 'right',
       render: (r) => (
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-4">
+          {/* Link to Detail Page */}
+          <Link
+            to={`/employees/${r.empno}`}
+            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest transition-colors cursor-pointer"
+          >
+            View
+          </Link>
+
           {rights.EMP_EDIT === 1 && (
             <button
               onClick={() => setEditTarget(r)}
@@ -139,6 +158,7 @@ export default function Employees() {
               Edit
             </button>
           )}
+
           {rights.EMP_DEL === 1 && r.record_status === 'ACTIVE' && (
             <button
               onClick={() => setDeleteTarget(r)}
@@ -149,7 +169,7 @@ export default function Employees() {
           )}
         </div>
       ),
-    }] : []),
+    },
   ];
 
   return (
