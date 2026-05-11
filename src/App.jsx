@@ -185,33 +185,43 @@ function App() {
       return;
     }
 
-    // FIX: If we already verified this exact user, don't run the DB query again!
+    // If we already verified this exact user, don't run the DB query again
     if (activeUserId.current === session.user.id) {
       setSession(session);
       setLoading(false);
       return;
     }
 
+    // FIX: Use maybeSingle() instead of single()
+    // .single() throws an error when 0 rows are found — this caused new users
+    // to be signed out immediately before provision_new_user() could finish.
+    // .maybeSingle() returns null when no row exists — allowing us to show
+    // the correct "pending activation" message instead of signing out silently.
     const { data: userRow, error } = await supabase
       .from('hr_user')
       .select('record_status, user_type')
       .eq('email', session.user.email)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('[checkLoginGuard] Query error:', error.message);
     }
 
     if (userRow?.record_status === 'ACTIVE') {
+      // User exists and is ACTIVE — allow through
       setPendingError('');
       setSession(session);
-      activeUserId.current = session.user.id; // Mark as verified
+      activeUserId.current = session.user.id;
     } else {
+      // User is INACTIVE (pending activation) OR not found in hr_user yet
       await supabase.auth.signOut();
       activeUserId.current = null;
       setPendingError(
-        error
-          ? 'Unable to verify your account. Please contact your HR administrator.'
+        // No row found — provision_new_user() may not have run yet, or
+        // the email doesn't match any hr_user row
+        !userRow
+          ? 'Your account is pending activation by an HR administrator.'
+          // Row found but INACTIVE — normal pending state
           : 'Your account is pending activation by an HR administrator.'
       );
       setSession(null);

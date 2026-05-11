@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient'; 
+import { supabase } from '../lib/supabaseClient';
 
 // M4 – Sprint 1 PR3: Google OAuth Redirect URL Setup
 // Register the following redirect URLs to ensure proper callback handling:
@@ -14,24 +14,55 @@ import { supabase } from '../lib/supabaseClient';
 //   • http://localhost:5173/auth/callback
 //   • https://<project>.supabase.co/auth/v1/callback
 
-
 export default function AuthCallback() {
   const navigate = useNavigate();
 
-// M4 – Sprint 1: Replaced fake timer with real getSession() check
-// Redirects to /employees if session exists, /login if not
+  // FIX: replaced getSession() with onAuthStateChange
+  //
+  // Problem with getSession():
+  //   When Google OAuth redirects back to /auth/callback, the URL contains
+  //   a one-time code that Supabase needs to exchange for a session.
+  //   getSession() runs immediately on mount — before Supabase has finished
+  //   the code exchange — so it finds no session and navigates to /login.
+  //
+  // Fix with onAuthStateChange:
+  //   Supabase automatically detects the OAuth code in the URL and fires
+  //   SIGNED_IN once the exchange completes. We listen for that event
+  //   and navigate only after the session is confirmed.
+  //   Timeout fallback handles edge cases where the event never fires.
   useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) navigate('/employees');
-    else navigate('/login');
-  });
-}, [navigate]);
+    // Listen for the SIGNED_IN event that fires after OAuth code exchange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Session established — let App.jsx checkLoginGuard handle
+          // the ACTIVE/INACTIVE check and redirect accordingly
+          navigate('/employees', { replace: true });
+        } else if (event === 'SIGNED_OUT') {
+          navigate('/login', { replace: true });
+        }
+      }
+    );
+
+    // Fallback: if onAuthStateChange never fires within 5 seconds
+    // (e.g. slow network), try getSession() as a last resort
+    const timeout = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) navigate('/employees', { replace: true });
+      else navigate('/login', { replace: true });
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-[#f0f2f5] flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-200 flex flex-col items-center max-w-sm w-full">
-        
-        {/* Branding - Matches your Sidebar logo */}
+
+        {/* Branding */}
         <div className="flex items-center gap-2.5 mb-10">
           <div className="w-8 h-8 bg-slate-900 flex items-center justify-center shadow-md">
             <span className="text-white text-xs font-black">H</span>
