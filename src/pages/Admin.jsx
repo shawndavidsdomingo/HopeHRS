@@ -84,9 +84,7 @@ export default function Admin() {
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
           Admin Module
         </h1>
-        <p className="text-xs text-amber-600 font-semibold uppercase tracking-widest mt-1">
-          ⚠ Temporary Test Page — M2 PR-01 will replace this with full UI
-        </p>
+
       </div>
 
       {/* Result message */}
