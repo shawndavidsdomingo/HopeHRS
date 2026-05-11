@@ -1,206 +1,232 @@
 // src/pages/Admin.jsx
-// Sprint 3 — M1 PR-01: feat/admin-api
+// Sprint 3 — M2 PR-01: feat/ui-admin-users
 // ─────────────────────────────────────────────────────────────────────────────
-// TEMPORARY TEST PAGE — replace with full UserManagementPage in M2 PR-01
-//
-// Purpose: allows testing of adminService.js functions (getUsers,
-// activateUser, deactivateUser) before M2 builds the full UI.
-//
-// Remove the test buttons and console.log calls before M2 PR-01 is merged.
+// UserManagementPage:
+//   - Table of all users: userId, email, user_type, record_status
+//   - Activate / Deactivate buttons per row (ADM_USER gated)
+//   - SUPERADMIN rows fully disabled with tooltip
+//   - Cleaned up from M1 test page (removed test instructions, console.logs)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
 import { getUsers, activateUser, deactivateUser } from '../lib/adminService';
 import { useRights } from '../contexts/UserRightsContext';
 
-export default function Admin() {
-  const { currentUser } = useRights();
-  const [users, setUsers]     = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+// ── User Type Badge ───────────────────────────────────────────
+const UserTypeBadge = ({ type }) => {
+  const map = {
+    SUPERADMIN: 'bg-purple-50 text-purple-700 border border-purple-200',
+    ADMIN:      'bg-blue-50 text-blue-700 border border-blue-200',
+    USER:       'bg-slate-100 text-slate-500 border border-slate-200',
+  };
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${map[type] ?? map.USER}`}>
+      {type}
+    </span>
+  );
+};
 
-  // ── Load all users on mount ───────────────────────────────────────────────
+// ── Status Badge ──────────────────────────────────────────────
+const StatusBadge = ({ status }) => {
+  const map = {
+    ACTIVE:   'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    INACTIVE: 'bg-slate-100 text-slate-400 border border-slate-200',
+    PENDING:  'bg-amber-50 text-amber-700 border border-amber-200',
+  };
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${map[status] ?? map.INACTIVE}`}>
+      {status}
+    </span>
+  );
+};
+
+// ── Skeleton Rows ─────────────────────────────────────────────
+const SkeletonRows = ({ cols, count = 6 }) => (
+  <>
+    {Array.from({ length: count }).map((_, i) => (
+      <tr key={i} className="border-b border-slate-100">
+        {Array.from({ length: cols }).map((_, j) => (
+          <td key={j} className="px-6 py-4">
+            <div
+              className="h-3 bg-slate-100 animate-pulse"
+              style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
+            />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </>
+);
+
+// ── Empty State ───────────────────────────────────────────────
+const EmptyState = ({ cols }) => (
+  <tr>
+    <td colSpan={cols} className="px-6 py-24 text-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-10 h-10 border-2 border-dashed border-slate-200 flex items-center justify-center">
+          <span className="text-slate-300 text-lg">∅</span>
+        </div>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">No users found</p>
+      </div>
+    </td>
+  </tr>
+);
+
+// ── Admin Page ────────────────────────────────────────────────
+export default function Admin() {
+  const { currentUser, rights } = useRights();
+  const [users, setUsers]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [toast, setToast]       = useState(null); // { type: 'success'|'error', message }
+  const [actingOn, setActingOn] = useState(null); // userid currently being actioned
+
+  const canManage = rights.ADM_USER === 1;
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    const { data, error } = await getUsers();
+    if (error) showToast('error', `Failed to load users: ${error.message}`);
+    else setUsers(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  async function fetchUsers() {
-    setLoading(true);
-    const { data, error } = await getUsers();
-    if (error) {
-      setMessage(`getUsers error: ${error.message}`);
-    } else {
-      setUsers(data);
-      console.log('[Admin TEST] getUsers result:', data);
-    }
-    setLoading(false);
-  }
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
 
-  // ── Test activateUser ─────────────────────────────────────────────────────
-  async function handleActivate(user) {
-    setMessage('');
-    const { data, error } = await activateUser(
-      user.userid,
-      user.user_type,
-      currentUser.email
-    );
-    if (error) {
-      const msg = `activateUser BLOCKED: ${error.message}`;
-      setMessage(msg);
-      console.error('[Admin TEST]', msg);
-    } else {
-      const msg = `activateUser SUCCESS: ${user.email} → ACTIVE`;
-      setMessage(msg);
-      console.log('[Admin TEST]', msg, data);
-      fetchUsers(); // Refresh list
+  const handleActivate = async (user) => {
+    setActingOn(user.userid);
+    const { error } = await activateUser(user.userid, user.user_type, currentUser.email);
+    if (error) showToast('error', `Activate failed: ${error.message}`);
+    else {
+      showToast('success', `${user.email} has been activated.`);
+      fetchUsers();
     }
-  }
+    setActingOn(null);
+  };
 
-  // ── Test deactivateUser ───────────────────────────────────────────────────
-  async function handleDeactivate(user) {
-    setMessage('');
-    const { data, error } = await deactivateUser(
-      user.userid,
-      user.user_type,
-      currentUser.email
-    );
-    if (error) {
-      const msg = `deactivateUser BLOCKED: ${error.message}`;
-      setMessage(msg);
-      console.error('[Admin TEST]', msg);
-    } else {
-      const msg = `deactivateUser SUCCESS: ${user.email} → INACTIVE`;
-      setMessage(msg);
-      console.log('[Admin TEST]', msg, data);
-      fetchUsers(); // Refresh list
+  const handleDeactivate = async (user) => {
+    setActingOn(user.userid);
+    const { error } = await deactivateUser(user.userid, user.user_type, currentUser.email);
+    if (error) showToast('error', `Deactivate failed: ${error.message}`);
+    else {
+      showToast('success', `${user.email} has been deactivated.`);
+      fetchUsers();
     }
-  }
+    setActingOn(null);
+  };
+
+  const cols = 5;
 
   return (
-    <div className="p-6 space-y-6">
-
+    <div>
       {/* Header */}
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-          Admin Module
-        </h1>
-
+      <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">User Management</h2>
+          <p className="text-sm text-slate-400 mt-1 font-medium">Manage system user accounts and access</p>
+        </div>
       </div>
 
-      {/* Result message */}
-      {message && (
-        <div className={`px-4 py-3 text-sm font-medium border ${
-          message.includes('BLOCKED') || message.includes('error')
-            ? 'bg-red-50 border-red-200 text-red-700'
+      {/* Toast */}
+      {toast && (
+        <div className={`mb-5 px-4 py-3 text-sm font-medium border ${
+          toast.type === 'error'
+            ? 'bg-rose-50 border-rose-200 text-rose-700'
             : 'bg-emerald-50 border-emerald-200 text-emerald-700'
         }`}>
-          {message}
+          {toast.message}
         </div>
       )}
 
-      {/* User table */}
-      {loading ? (
-        <p className="text-sm text-slate-400 animate-pulse">Loading users...</p>
-      ) : (
-        <div className="bg-white border border-slate-200 overflow-hidden">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">User Type</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stamp</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
-                  Test Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {users.map((user) => {
+      {/* Record count */}
+      {!loading && (
+        <p className="text-xs text-slate-400 font-medium mb-3">
+          {users.length} {users.length === 1 ? 'user' : 'users'} found
+        </p>
+      )}
+
+      {/* Table */}
+      <div className="bg-white border border-slate-200 overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">User ID</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Email</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">User Type</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Status</th>
+              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows cols={cols} />
+            ) : users.length > 0 ? (
+              users.map((user) => {
                 const isSuperAdmin = user.user_type === 'SUPERADMIN';
                 const isActive     = user.record_status === 'ACTIVE';
+                const isActing     = actingOn === user.userid;
 
                 return (
                   <tr
                     key={user.userid}
-                    className={`transition-colors ${
-                      isSuperAdmin ? 'bg-slate-50 opacity-60' : 'hover:bg-slate-50/50'
+                    className={`border-b border-slate-100 last:border-0 transition-colors duration-75 ${
+                      isSuperAdmin
+                        ? 'bg-slate-50/60 opacity-70'
+                        : 'hover:bg-indigo-50/40'
                     }`}
                   >
-                    <td className="px-4 py-3 text-slate-700">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded ${
-                        isSuperAdmin
-                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                          : user.user_type === 'ADMIN'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'bg-slate-100 text-slate-500 border border-slate-200'
-                      }`}>
-                        {user.user_type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded ${
-                        isActive
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-slate-100 text-slate-400 border border-slate-200'
-                      }`}>
-                        {user.record_status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-[10px] text-slate-400">
-                      {user.stamp ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-6 py-4 font-mono text-[11px] text-slate-400">{user.userid}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{user.email}</td>
+                    <td className="px-6 py-4"><UserTypeBadge type={user.user_type} /></td>
+                    <td className="px-6 py-4"><StatusBadge status={user.record_status} /></td>
+                    <td className="px-6 py-4 text-right">
                       {isSuperAdmin ? (
-                        // SUPERADMIN rows — buttons disabled with tooltip
                         <span
                           title="SUPERADMIN accounts cannot be modified"
-                          className="text-[10px] text-slate-300 font-bold uppercase tracking-widest cursor-not-allowed"
+                          className="text-[10px] text-slate-300 font-bold uppercase tracking-widest cursor-not-allowed select-none"
                         >
                           Protected
                         </span>
-                      ) : (
+                      ) : canManage ? (
                         <div className="flex items-center justify-end gap-2">
-                          {/* Activate button — only show if INACTIVE */}
                           {!isActive && (
                             <button
                               onClick={() => handleActivate(user)}
-                              className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer rounded"
+                              disabled={isActing}
+                              className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer disabled:opacity-40"
                             >
-                              Activate
+                              {isActing ? '...' : 'Activate'}
                             </button>
                           )}
-                          {/* Deactivate button — only show if ACTIVE */}
                           {isActive && (
                             <button
                               onClick={() => handleDeactivate(user)}
-                              className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white transition-all cursor-pointer rounded"
+                              disabled={isActing}
+                              className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white transition-all cursor-pointer disabled:opacity-40"
                             >
-                              Deactivate
+                              {isActing ? '...' : 'Deactivate'}
                             </button>
                           )}
                         </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">—</span>
                       )}
                     </td>
                   </tr>
                 );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Test instructions */}
-      <div className="bg-amber-50 border border-amber-200 px-4 py-4 text-xs text-amber-800 space-y-1">
-        <p className="font-bold uppercase tracking-widest">Test Instructions</p>
-        <p>1. Confirm all users load in the table above — check DevTools Console for getUsers() result</p>
-        <p>2. Click Activate on an INACTIVE user — confirm status changes to ACTIVE</p>
-        <p>3. Click Deactivate on an ACTIVE user — confirm status changes to INACTIVE</p>
-        <p>4. Confirm SUPERADMIN rows show "Protected" with no action buttons</p>
-        <p>5. Confirm clicking Activate/Deactivate on a SUPERADMIN (force via console) is blocked</p>
+              })
+            ) : (
+              <EmptyState cols={cols} />
+            )}
+          </tbody>
+        </table>
       </div>
-
     </div>
   );
 }
