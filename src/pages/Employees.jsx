@@ -131,7 +131,8 @@ export default function Employees() {
             View
           </Link>
 
-          {rights.EMP_EDIT === 1 && (
+          {/* M4 PR-02: hasRight('EMP_EDIT') replaces rights.EMP_EDIT === 1 */}
+          {hasRight('EMP_EDIT') && (
             <button
               onClick={() => setEditTarget(r)}
               className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer"
@@ -161,7 +162,8 @@ export default function Employees() {
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Directory</h2>
           <p className="text-sm text-slate-400 mt-1 font-medium">All active personnel on record</p>
         </div>
-        {rights.EMP_ADD === 1 && (
+        {/* M4 PR-02: hasRight('EMP_ADD') replaces rights.EMP_ADD === 1 */}
+        {hasRight('EMP_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold tracking-[0.12em] uppercase transition-colors duration-150 cursor-pointer shadow-sm"

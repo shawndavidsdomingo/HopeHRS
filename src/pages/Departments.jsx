@@ -1,4 +1,13 @@
 // src/pages/Departments.jsx
+// Sprint 2 — M2 PR-03: feat/ui-job-dept
+// M4 PR-03: feat/rights-job-dept — migrated to hasRight() from UserRightsContext
+// ─────────────────────────────────────────────────────────────────────────────
+// Features:
+//   - Add button gated by hasRight('DEPT_ADD')
+//   - Edit button gated by hasRight('DEPT_EDIT')
+//   - Delete button gated by hasRight('DEPT_DEL')
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useState, useCallback } from 'react';
 import { Building, Plus, Pencil, Trash2 } from 'lucide-react';
 import { getDepts, softDeleteDept } from '../lib/departmentService';
@@ -8,19 +17,13 @@ import EditDeptModal from '../components/EditDeptModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 export default function Departments() {
-  const { currentUser, rights } = useRights();
-  const isAdmin = currentUser?.user_type === 'ADMIN' || currentUser?.user_type === 'SUPERADMIN';
-  const isSuperAdmin = currentUser?.user_type === 'SUPERADMIN';
-  
-  // STRICTER GATING: Only Superadmins can delete
-  const canDelete = isSuperAdmin;
-  const canEdit = isAdmin || rights?.DEPT_EDIT === 1;
-  const canAdd = isAdmin || rights?.DEPT_ADD === 1;
+  // M4 PR-03: replaced manual role checks + raw rights map with hasRight()
+  const { currentUser, hasRight } = useRights();
 
-  const [depts, setDepts]           = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [showAdd, setShowAdd]       = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
+  const [depts, setDepts]             = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [showAdd, setShowAdd]         = useState(false);
+  const [editTarget, setEditTarget]   = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
@@ -51,7 +54,8 @@ export default function Departments() {
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Departments</h1>
           <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Manage company departments</p>
         </div>
-        {canAdd && (
+        {/* M4 PR-03: hasRight('DEPT_ADD') replaces canAdd = isAdmin || rights?.DEPT_ADD === 1 */}
+        {hasRight('DEPT_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest rounded shadow-sm transition-all"
@@ -71,7 +75,8 @@ export default function Departments() {
                 <Th>Dept Code</Th>
                 <Th>Department Name</Th>
                 <Th>Status</Th>
-                {(canEdit || canDelete) && <Th align="right">Actions</Th>}
+                {/* M4 PR-03: hasRight() replaces canEdit / canDelete local vars */}
+                {(hasRight('DEPT_EDIT') || hasRight('DEPT_DEL')) && <Th align="right">Actions</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -87,11 +92,12 @@ export default function Departments() {
                   </Td>
                   <Td>{dept.deptname}</Td>
                   <Td><StatusBadge status={dept.record_status || 'ACTIVE'} /></Td>
-                  
-                  {(canEdit || canDelete) && (
+
+                  {(hasRight('DEPT_EDIT') || hasRight('DEPT_DEL')) && (
                     <Td align="right">
                       <div className="flex items-center justify-end gap-2">
-                        {canEdit && dept.record_status !== 'INACTIVE' && (
+                        {/* M4 PR-03: hasRight('DEPT_EDIT') replaces canEdit */}
+                        {hasRight('DEPT_EDIT') && dept.record_status !== 'INACTIVE' && (
                           <button
                             onClick={() => setEditTarget(dept)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer rounded"
@@ -99,7 +105,8 @@ export default function Departments() {
                             <Pencil size={10} /> Edit
                           </button>
                         )}
-                        {canDelete && dept.record_status !== 'INACTIVE' && (
+                        {/* M4 PR-03: hasRight('DEPT_DEL') replaces canDelete = isSuperAdmin */}
+                        {hasRight('DEPT_DEL') && dept.record_status !== 'INACTIVE' && (
                           <button
                             onClick={() => setDeleteTarget(dept)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-rose-500 uppercase tracking-widest border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer rounded"

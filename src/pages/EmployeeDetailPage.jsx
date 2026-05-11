@@ -1,13 +1,14 @@
 // src/pages/EmployeeDetailPage.jsx
 // Sprint 2 — M2 PR-02: feat/ui-employee-detail-jh
+// M4 PR-02: feat/rights-employee-jh — migrated to hasRight() from UserRightsContext
 // ─────────────────────────────────────────────────────────────────────────────
 // Features:
 //   - Profile view for a single employee (fetched by empno from URL params)
 //   - Embedded JobHistoryPanel showing all job history rows sorted by effDate desc
 //   - jobCode → jobDesc and deptCode → deptName resolved via lookup maps
-//   - AddJobHistoryForm embedded in page (JH_ADD gated)
-//   - EditJobHistoryModal per row (JH_EDIT gated)
-//   - Soft-delete button per row (JH_DEL gated)
+//   - AddJobHistoryForm embedded in page (JH_ADD gated via hasRight)
+//   - EditJobHistoryModal per row (JH_EDIT gated via hasRight)
+//   - Soft-delete button per row (JH_DEL gated via hasRight)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -64,6 +65,7 @@ const EmptyState = ({ cols }) => (
 );
 
 // ── Add Job History Form ──────────────────────────────────────
+// M4 PR-02: hasRight check moved to parent — this form only renders when JH_ADD is granted
 const AddJobHistoryForm = ({ empno, jobs, depts, onSuccess }) => {
   const { currentUser } = useRights();
   const [form, setForm] = useState({ jobcode: '', effdate: '', salary: '', deptcode: '' });
@@ -155,6 +157,7 @@ const AddJobHistoryForm = ({ empno, jobs, depts, onSuccess }) => {
 };
 
 // ── Edit Job History Modal ────────────────────────────────────
+// M4 PR-02: hasRight check moved to parent — this modal only renders when JH_EDIT is granted
 const EditJobHistoryModal = ({ row, depts, onClose, onSuccess }) => {
   const { currentUser } = useRights();
   const [form, setForm] = useState({ salary: row.salary, deptcode: row.deptcode });
@@ -165,7 +168,11 @@ const EditJobHistoryModal = ({ row, depts, onClose, onSuccess }) => {
     setSaving(true);
     setError('');
     const pk = { empno: row.empno, jobcode: row.jobcode, effdate: row.effdate };
-    const { error: err } = await updateJobHistory(pk, { salary: Number(form.salary), deptcode: form.deptcode }, currentUser.email);
+    const { error: err } = await updateJobHistory(
+      pk,
+      { salary: Number(form.salary), deptcode: form.deptcode },
+      currentUser.email
+    );
     setSaving(false);
     if (err) {
       setError(err.message);
@@ -234,18 +241,19 @@ const EditJobHistoryModal = ({ row, depts, onClose, onSuccess }) => {
 export default function EmployeeDetailPage() {
   const { empno } = useParams();
   const navigate = useNavigate();
-  const { currentUser, rights } = useRights();
 
-  const [employee, setEmployee]   = useState(null);
-  const [history, setHistory]     = useState([]);
-  const [jobs, setJobs]           = useState([]);
-  const [depts, setDepts]         = useState([]);
+  // M4 PR-02: destructure hasRight instead of raw rights map
+  const { currentUser, hasRight } = useRights();
+
+  const [employee, setEmployee]       = useState(null);
+  const [history, setHistory]         = useState([]);
+  const [jobs, setJobs]               = useState([]);
+  const [depts, setDepts]             = useState([]);
   const [loadingEmp, setLoadingEmp]   = useState(true);
   const [loadingJH, setLoadingJH]     = useState(true);
   const [editTarget, setEditTarget]   = useState(null);
   const [deletingPk, setDeletingPk]   = useState(null);
 
-  // Lookup maps: code → label
   const jobMap  = Object.fromEntries(jobs.map(j => [j.jobcode, j.jobdesc]));
   const deptMap = Object.fromEntries(depts.map(d => [d.deptcode, d.deptname]));
 
@@ -291,15 +299,18 @@ export default function EmployeeDetailPage() {
     fetchHistory();
   };
 
+  // M4 PR-02: hasRight('JH_EDIT') and hasRight('JH_DEL') replace rights.JH_EDIT === 1 etc.
   const jhCols = [
-    { header: 'Job Code',   render: (r) => <span className="font-mono text-xs text-indigo-500 font-bold">{r.jobcode}</span> },
-    { header: 'Job Desc',   render: (r) => <span className="text-slate-700">{jobMap[r.jobcode] ?? '—'}</span> },
-    { header: 'Dept Code',  render: (r) => <span className="font-mono text-xs text-slate-400">{r.deptcode}</span> },
-    { header: 'Dept Name',  render: (r) => <span className="text-slate-700">{deptMap[r.deptcode] ?? '—'}</span> },
-    { header: 'Eff Date',   render: (r) => <span className="font-mono text-xs text-slate-500">{r.effdate}</span> },
-    { header: 'Salary',     render: (r) => <span className="font-mono text-sm font-semibold text-slate-700">${Number(r.salary || 0).toLocaleString()}</span> },
-    { header: 'Status',     render: (r) => <StatusBadge status={r.record_status} /> },
-    ...((rights.JH_EDIT === 1 || rights.JH_DEL === 1) ? [{
+    { header: 'Job Code',  render: (r) => <span className="font-mono text-xs text-indigo-500 font-bold">{r.jobcode}</span> },
+    { header: 'Job Desc',  render: (r) => <span className="text-slate-700">{jobMap[r.jobcode] ?? '—'}</span> },
+    { header: 'Dept Code', render: (r) => <span className="font-mono text-xs text-slate-400">{r.deptcode}</span> },
+    { header: 'Dept Name', render: (r) => <span className="text-slate-700">{deptMap[r.deptcode] ?? '—'}</span> },
+    { header: 'Eff Date',  render: (r) => <span className="font-mono text-xs text-slate-500">{r.effdate}</span> },
+    { header: 'Salary',    render: (r) => <span className="font-mono text-sm font-semibold text-slate-700">${Number(r.salary || 0).toLocaleString()}</span> },
+    { header: 'Status',    render: (r) => <StatusBadge status={r.record_status} /> },
+
+    // Actions column — only rendered if user has at least one of JH_EDIT or JH_DEL
+    ...(hasRight('JH_EDIT') || hasRight('JH_DEL') ? [{
       header: '',
       align: 'right',
       render: (r) => {
@@ -310,7 +321,8 @@ export default function EmployeeDetailPage() {
           deletingPk.effdate === pk.effdate;
         return (
           <div className="flex items-center justify-end gap-3">
-            {rights.JH_EDIT === 1 && (
+            {/* M4 PR-02: hasRight('JH_EDIT') replaces rights.JH_EDIT === 1 */}
+            {hasRight('JH_EDIT') && (
               <button
                 onClick={() => setEditTarget(r)}
                 className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer"
@@ -318,7 +330,8 @@ export default function EmployeeDetailPage() {
                 Edit
               </button>
             )}
-            {rights.JH_DEL === 1 && r.record_status === 'ACTIVE' && (
+            {/* M4 PR-02: hasRight('JH_DEL') replaces rights.JH_DEL === 1 */}
+            {hasRight('JH_DEL') && r.record_status === 'ACTIVE' && (
               <button
                 onClick={() => handleSoftDelete(r)}
                 disabled={isDeleting}
@@ -443,8 +456,8 @@ export default function EmployeeDetailPage() {
           </table>
         </div>
 
-        {/* Add Job History Form — JH_ADD gated */}
-        {rights.JH_ADD === 1 && (
+        {/* Add Job History Form — M4 PR-02: hasRight('JH_ADD') replaces rights.JH_ADD === 1 */}
+        {hasRight('JH_ADD') && (
           <AddJobHistoryForm
             empno={empno}
             jobs={jobs}
@@ -454,7 +467,7 @@ export default function EmployeeDetailPage() {
         )}
       </div>
 
-      {/* Edit Modal — JH_EDIT gated */}
+      {/* Edit Modal — only mounts when editTarget is set, already gated by hasRight('JH_EDIT') above */}
       {editTarget && (
         <EditJobHistoryModal
           row={editTarget}
