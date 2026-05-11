@@ -1,16 +1,6 @@
 // src/pages/Employees.jsx
 // Sprint 2 — M2 PR-01: feat/ui-employee-list
-// M4 PR-02: feat/rights-employee-jh — migrated to hasRight() from UserRightsContext
-// ─────────────────────────────────────────────────────────────────────────────
-// Full EmployeeListPage replacing the Sprint 1 placeholder.
-//
-// Features:
-//   - Fetches employees via getEmployees(userType) from employeeService.js
-//   - Stamp column visible to ADMIN and SUPERADMIN only (isAdminOrAbove)
-//   - INACTIVE rows hidden for USER (enforced by service + RLS)
-//   - Add button gated by hasRight('EMP_ADD')
-//   - Edit button gated by hasRight('EMP_EDIT')
-//   - Delete button gated by hasRight('EMP_DEL')
+// M4 PR-04: feat/rights-stamp-sidebar — stamp column now uses isAdminOrAbove from context
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Trash2 } from 'lucide-react';
@@ -93,9 +83,8 @@ const EmptyState = ({ cols }) => (
 
 // ── Employees Page ────────────────────────────────────────────
 export default function Employees() {
-  // M4 PR-02: destructure hasRight + isAdminOrAbove instead of raw rights map
-  const { currentUser, hasRight, isAdminOrAbove } = useRights();
-
+  // M4 PR-04: replaced local isAdmin variable with isAdminOrAbove from context
+  const { currentUser, rights, isAdminOrAbove } = useRights();
   const [data, setData]                 = useState([]);
   const [loading, setLoading]           = useState(true);
   const [showAdd, setShowAdd]           = useState(false);
@@ -114,23 +103,22 @@ export default function Employees() {
   }, [currentUser]);
 
   const cols = [
-    { header: 'Emp No',      key: 'empno',     className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Last Name',   key: 'lastname',  className: 'font-semibold text-slate-800' },
-    { header: 'First Name',  key: 'firstname', className: 'font-semibold text-slate-800' },
-    { header: 'Gender',      render: (r) => <GenderPill g={r.gender} /> },
+    { header: 'Emp No',     key: 'empno',     className: 'font-mono text-slate-400 text-xs' },
+    { header: 'Last Name',  key: 'lastname',  className: 'font-semibold text-slate-800' },
+    { header: 'First Name', key: 'firstname', className: 'font-semibold text-slate-800' },
+    { header: 'Gender',     render: (r) => <GenderPill g={r.gender} /> },
     { header: 'Current Job', key: 'job_title', className: 'text-slate-600 text-sm' },
-    { header: 'Hire Date',   key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Separation',  render: (r) => <SepBadge date={r.sepdate} /> },
-    { header: 'Status',      render: (r) => <StatusBadge status={r.record_status} /> },
+    { header: 'Hire Date',  key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
+    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
+    { header: 'Status',     render: (r) => <StatusBadge status={r.record_status} /> },
 
-    // Stamp column — ADMIN and SUPERADMIN only (M4 PR-02: uses isAdminOrAbove)
+    // M4 PR-04: stamp column — uses isAdminOrAbove from UserRightsContext (replaces local isAdmin)
     ...(isAdminOrAbove ? [{
       header: 'Stamp',
       key: 'stamp',
       className: 'text-slate-400 font-mono text-[10px]',
     }] : []),
 
-    // Actions column
     {
       header: '',
       align: 'right',
@@ -153,8 +141,7 @@ export default function Employees() {
             </button>
           )}
 
-          {/* M4 PR-02: hasRight('EMP_DEL') replaces rights.EMP_DEL === 1 */}
-          {hasRight('EMP_DEL') && r.record_status === 'ACTIVE' && (
+          {rights.EMP_DEL === 1 && r.record_status === 'ACTIVE' && (
             <button
               onClick={() => setDeleteTarget(r)}
               className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"

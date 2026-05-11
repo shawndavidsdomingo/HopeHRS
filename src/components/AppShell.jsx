@@ -1,4 +1,9 @@
 // src/components/AppShell.jsx
+// M4 PR-04: feat/rights-stamp-sidebar
+// Deleted Items and Admin sidebar links now visible to ADMIN and SUPERADMIN
+// (previously restricted to SUPERADMIN only)
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
@@ -7,14 +12,15 @@ import { useRights } from '../contexts/UserRightsContext';
 export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser } = useRights();
+  // M4 PR-04: destructure isAdminOrAbove for sidebar gating
+  const { currentUser, isAdminOrAbove } = useRights();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  // Base items visible to everyone
+  // Base items visible to all authenticated users
   const baseMenuItems = [
     { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
     { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
@@ -22,14 +28,14 @@ export default function AppShell() {
     { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
   ];
 
-  // STRICTER GATING: Only SUPERADMIN gets these links
+  // M4 PR-04: Deleted Items and Admin visible to ADMIN and SUPERADMIN
+  // Previously: currentUser?.user_type === 'SUPERADMIN' only
   const menuItems = [...baseMenuItems];
-  if (currentUser?.user_type === 'SUPERADMIN') {
+  if (isAdminOrAbove) {
     menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
     menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
   }
 
-  // Get the current page name for the topbar
   const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
 
   return (
@@ -57,7 +63,7 @@ export default function AppShell() {
           ))}
         </nav>
 
-        {/* Divider + User zone */}
+        {/* Sign Out */}
         <div className="px-3 pb-5 pt-2 border-t border-slate-200 space-y-1">
           <button
             onClick={handleSignOut}
