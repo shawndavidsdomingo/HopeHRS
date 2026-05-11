@@ -1,20 +1,30 @@
 // src/components/AppShell.jsx
+// Sprint 3 fix: Deleted Items and Admin links now visible to ADMIN and SUPERADMIN
+// Root cause: AppShell was checking currentUser?.user_type === 'SUPERADMIN'
+// (SUPERADMIN only) instead of using isAdminOrAbove from UserRightsContext.
+// Per spec: ADMIN can recover deleted items and access the Admin module.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
 
 export default function AppShell() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { currentUser } = useRights();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
+  // FIX: destructure isAdminOrAbove so ADMIN also sees Deleted Items + Admin
+  // Previously: const { currentUser } = useRights() then checked user_type === 'SUPERADMIN'
+  // Now: isAdminOrAbove is true for both ADMIN and SUPERADMIN
+  const { currentUser, isAdminOrAbove } = useRights();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  // Base items visible to everyone
+  // Base items — visible to all authenticated users (USER, ADMIN, SUPERADMIN)
   const baseMenuItems = [
     { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
     { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
@@ -22,18 +32,19 @@ export default function AppShell() {
     { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
   ];
 
-  // STRICTER GATING: Only SUPERADMIN gets these links
+  // Deleted Items and Admin — visible to ADMIN and SUPERADMIN only
+  // Route guard in ProtectedRoute.jsx still blocks USER even if they type the URL directly
   const menuItems = [...baseMenuItems];
-  if (currentUser?.user_type === 'SUPERADMIN') {
+  if (isAdminOrAbove) {
     menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
-    menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
+    menuItems.push({ path: '/admin',         label: 'Admin',         icon: <Shield size={15} /> });
   }
 
-  // Get the current page name for the topbar
   const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
 
   return (
     <div className="flex h-screen w-screen bg-slate-50 font-sans text-slate-900">
+
       {/* ── Sidebar ── */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
         <div className="h-14 flex items-center px-6 border-b border-slate-200">
@@ -57,7 +68,7 @@ export default function AppShell() {
           ))}
         </nav>
 
-        {/* Divider + User zone */}
+        {/* Sign Out */}
         <div className="px-3 pb-5 pt-2 border-t border-slate-200 space-y-1">
           <button
             onClick={handleSignOut}
@@ -71,6 +82,7 @@ export default function AppShell() {
 
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
+
         {/* Topbar */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
           <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
@@ -87,6 +99,7 @@ export default function AppShell() {
           <Outlet />
         </main>
       </div>
+
     </div>
   );
 }
