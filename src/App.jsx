@@ -1,10 +1,24 @@
-import { useEffect, useState } from 'react';
+// src/App.jsx
+import { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
+import { UserRightsProvider } from './contexts/UserRightsContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 import AppShell from './components/AppShell';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
+import Employees from './pages/Employees';
+import Jobs from './pages/Jobs';
+import Departments from './pages/Departments';
+import JobHistory from './pages/JobHistory';
+import DeletedItems from './pages/DeletedItems';
+import EmployeeDetailPage from './pages/EmployeeDetailPage'
+import Admin from './pages/Admin';
+import TestEmployee from './tests/TestEmployee';
+import TestJobHistory from './tests/TestJobHistory';
+import TestJobDept from './tests/TestJobDept';
+import TestRights from './tests/TestRights';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -20,7 +34,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ── Separation Badge (for employees who have left) ────────────
+// ── Separation Badge ──────────────────────────────────────────
 const SepBadge = ({ date }) => {
   if (!date) return <span className="text-slate-300 text-xs">—</span>;
   return (
@@ -140,167 +154,66 @@ const DataTable = ({ title, subtitle, columns, data, loading, actionLabel = 'New
   </div>
 );
 
-// ── EMPLOYEES ─────────────────────────────────────────────────
-const EmployeeList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.from('employee').select('*').eq('record_status', 'ACTIVE').then(({ data }) => {
-      setData(data || []);
-      setLoading(false);
-    });
-  }, []);
-
-  const cols = [
-    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Full Name', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.lastname}, {r.firstname}</span> },
-    { header: 'Gender', render: (r) => <GenderPill g={r.gender} /> },
-    { header: 'Birthdate', key: 'birthdate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Hire Date', key: 'hiredate', className: 'text-slate-500 font-mono text-xs' },
-    { header: 'Separation', render: (r) => <SepBadge date={r.sepdate} /> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Employee Directory" subtitle="All active personnel on record" columns={cols} data={data} loading={loading} />;
-};
-
-// ── JOBS ──────────────────────────────────────────────────────
-const JobList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchJobs() {
-      const { data, error } = await supabase.from('job').select('*').eq('record_status', 'ACTIVE');
-      if (error) console.error('Job Fetch Error:', error.message);
-      setData(data || []);
-      setLoading(false);
-    }
-    fetchJobs();
-  }, []);
-
-  const cols = [
-    { header: 'Code', key: 'jobcode', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Position Title', render: (r) => <span className="font-semibold text-slate-800 tracking-tight">{r.jobtitle}</span> },
-    {
-      header: 'Salary Range',
-      render: (r) => (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-slate-500">${Number(r.lowsal || 0).toLocaleString()}</span>
-          <span className="text-slate-300 text-xs">—</span>
-          <span className="font-mono text-xs text-slate-500">${Number(r.highsal || 0).toLocaleString()}</span>
-        </div>
-      ),
-    },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Job Catalogue" subtitle="Approved positions and compensation bands" columns={cols} data={data} loading={loading} />;
-};
-
-// ── DEPARTMENTS ───────────────────────────────────────────────
-const DepartmentList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.from('department').select('*').eq('record_status', 'ACTIVE').then(({ data }) => {
-      setData(data || []);
-      setLoading(false);
-    });
-  }, []);
-
-  const cols = [
-    { header: 'Dept Code', key: 'deptno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Department Name', render: (r) => <span className="font-semibold text-slate-800">{r.deptname}</span> },
-    { header: 'Location', key: 'location', className: 'text-slate-500 text-sm' },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-    { header: '', align: 'right', render: () => <button className="text-[10px] font-bold text-slate-300 hover:text-indigo-600 uppercase tracking-widest transition-colors cursor-pointer">Edit</button> },
-  ];
-
-  return <DataTable title="Departments" subtitle="Organizational units and locations" columns={cols} data={data} loading={loading} />;
-};
-
-// ── JOB HISTORY ───────────────────────────────────────────────
-const JobHistoryList = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchHistory() {
-      const { data, error } = await supabase.from('jobhistory').select('*');
-      if (error) console.error('Database Error:', error.message);
-      setData(data || []);
-      setLoading(false);
-    }
-    fetchHistory();
-  }, []);
-
-  const cols = [
-    { header: 'Emp No', key: 'empno', className: 'font-mono text-slate-400 text-xs' },
-    { header: 'Job Code', key: 'jobcode', className: 'font-mono text-indigo-400 text-xs font-bold' },
-    { header: 'Department', key: 'deptcode', className: 'text-slate-500 text-sm' },
-    { header: 'Effective Date', key: 'effdate', className: 'font-mono text-slate-500 text-xs' },
-    { header: 'Salary', render: (r) => <span className="font-mono text-sm text-slate-700 font-semibold">${Number(r.salary || 0).toLocaleString()}</span> },
-    { header: 'Status', render: (r) => <StatusBadge status={r.record_status} /> },
-  ];
-
-  return <DataTable title="Employment History" subtitle="Complete job assignment records across all departments" columns={cols} data={data} loading={loading} />;
-};
-
 // ── APP ROOT ──────────────────────────────────────────────────
 function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingError, setPendingError] = useState('');
+  
+  // FIX: This stops the app from refreshing the database every time you switch tabs
+  const activeUserId = useRef(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       checkLoginGuard(session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignore background refreshes
+      if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
       checkLoginGuard(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // M4 – Sprint 1: checkLoginGuard queries hr_user by email.
-  // If you still get a 400, fix it in Supabase Dashboard:
-  //   Table Editor → hr_user → RLS → disable RLS (dev) OR
-  //   add policy: FOR SELECT TO authenticated USING (true)
   const checkLoginGuard = async (session) => {
-    if (session) {
-      const { data: userRow, error } = await supabase
-        .from('hr_user')
-        .select('record_status, user_type')
-        .eq('email', session.user.email)
-        .single();
+    if (!session) {
+      activeUserId.current = null;
+      setSession(null);
+      setLoading(false);
+      return;
+    }
 
-      // Detailed log to help diagnose any remaining issues
-      if (error) {
-        console.error('[checkLoginGuard] Query error:', error.message, '| hint:', error.hint, '| details:', error.details);
-      } else {
-        console.log('[checkLoginGuard] Found user row:', userRow);
-      }
+    // FIX: If we already verified this exact user, don't run the DB query again!
+    if (activeUserId.current === session.user.id) {
+      setSession(session);
+      setLoading(false);
+      return;
+    }
 
-      if (userRow?.record_status === 'ACTIVE') {
-        setPendingError('');
-        setSession(session);
-      } else {
-        await supabase.auth.signOut();
-        setPendingError(
-          error
-            ? 'Unable to verify your account. Please contact your HR administrator.'
-            : 'Your account is pending activation by an HR administrator.'
-        );
-        setSession(null);
-      }
+    const { data: userRow, error } = await supabase
+      .from('hr_user')
+      .select('record_status, user_type')
+      .eq('email', session.user.email)
+      .single();
+
+    if (error) {
+      console.error('[checkLoginGuard] Query error:', error.message);
+    }
+
+    if (userRow?.record_status === 'ACTIVE') {
+      setPendingError('');
+      setSession(session);
+      activeUserId.current = session.user.id; // Mark as verified
     } else {
+      await supabase.auth.signOut();
+      activeUserId.current = null;
+      setPendingError(
+        error
+          ? 'Unable to verify your account. Please contact your HR administrator.'
+          : 'Your account is pending activation by an HR administrator.'
+      );
       setSession(null);
     }
     setLoading(false);
@@ -309,27 +222,46 @@ function App() {
   if (loading) return null;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={
-          !session
-            ? <Login pendingError={pendingError} />
-            : <Navigate to="/employees" replace />
-        } />
-        <Route path="/register" element={<Register />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+    <UserRightsProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={
+            !session
+              ? <Login pendingError={pendingError} />
+              : <Navigate to="/employees" replace />
+          } />
+          <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-        <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<Navigate to="/employees" replace />} />
-          <Route path="/employees" element={<EmployeeList />} />
-          <Route path="/departments" element={<DepartmentList />} />
-          <Route path="/jobs" element={<JobList />} />
-          <Route path="/jobhistory" element={<JobHistoryList />} />
-        </Route>
+          <Route element={session ? <AppShell /> : <Navigate to="/login" replace />}>
+            <Route path="/" element={<Navigate to="/employees" replace />} />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
+            {/* M2 PR-01: Full EmployeeListPage with rights gating */}
+            <Route path="/employees" element={<Employees />} />
+
+            <Route path="/employees/:empno" element={<EmployeeDetailPage />} />
+
+            {/* M2 PR-03: Full JobListPage + DeptListPage with rights gating */}
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/jobs" element={<Jobs />} />
+            {/* M2 PR-03: Moved JobHistoryList out of App.jsx into its own page */}
+            <Route path="/jobhistory" element={<JobHistory />} />
+
+            {/* PR-04: adminOnly route guard */}
+            <Route path="/deleted-items" element={<ProtectedRoute adminOnly><DeletedItems /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
+
+          {/* [TESTING ONLY - REMOVE BEFORE PUSH] */}
+          <Route path="/test-employee" element={<TestEmployee />} />
+          <Route path="/test-jobhistory" element={<TestJobHistory />} />
+          <Route path="/test-jobdept" element={<TestJobDept />} />
+          <Route path="/test-rights" element={<TestRights />} />
+        </Routes>
+      </BrowserRouter>
+    </UserRightsProvider>
   );
 }
 
