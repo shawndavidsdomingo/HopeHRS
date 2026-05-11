@@ -192,6 +192,12 @@
 | 9 | React Strict Mode fired add functions twice in development causing duplicate key errors on test rows | Expected behavior in dev mode — not a bug in service code; test rows cleaned up after each test run |
 | 10 | `emp_update_deactivate` leftover policy from a previous run conflicted with `emp_update_del` | Dropped the duplicate policy; added `DROP POLICY IF EXISTS` for all legacy names in migration files |
 | 11 | Testing in Supabase SQL Editor using `postgres` role bypassed RLS entirely — tests appeared to pass when they should have failed | Added `FORCE ROW LEVEL SECURITY` during testing then reverted; final fix was using `BEGIN / SET LOCAL ROLE authenticated / ROLLBACK` blocks for all tests |
+| 12 | provision_new_user() trigger crashing with "Database error saving new 
+user" — caused by on_auth_user_created_sync_uid trigger conflicting with 
+provision_new_user() on auth.users INSERT | Dropped on_auth_user_created_sync_uid 
+trigger; fixed provision_new_user() column names (moduleCode → modulecode, 
+rightCode → rightcode); added EXCEPTION handler and SET search_path = public |
+
 
 ---
 
