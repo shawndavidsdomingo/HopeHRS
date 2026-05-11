@@ -15,11 +15,6 @@ import JobHistory from './pages/JobHistory';
 import DeletedItems from './pages/DeletedItems';
 import EmployeeDetailPage from './pages/EmployeeDetailPage'
 import Admin from './pages/Admin';
-import TestEmployee from './tests/TestEmployee';
-import TestJobHistory from './tests/TestJobHistory';
-import TestJobDept from './tests/TestJobDept';
-import TestRights from './tests/TestRights';
-import TestReports from './tests/TestReports'; // [TESTING ONLY - REMOVE BEFORE PUSH]
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -264,13 +259,6 @@ function App() {
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
-
-          {/* [TESTING ONLY - REMOVE BEFORE PUSH] */}
-          <Route path="/test-employee" element={<TestEmployee />} />
-          <Route path="/test-jobhistory" element={<TestJobHistory />} />
-          <Route path="/test-jobdept" element={<TestJobDept />} />
-          <Route path="/test-rights" element={<TestRights />} />
-          <Route path="/test-reports" element={<TestReports />} />
         </Routes>
       </BrowserRouter>
     </UserRightsProvider>
