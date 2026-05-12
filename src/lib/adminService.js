@@ -40,12 +40,21 @@ function makeStamp(action, userEmail) {
 export async function getUsers() {
   const { data, error } = await supabase
     .from('hr_user')
-    .select('userid, email, user_type, record_status, stamp')
-    .order('user_type')
+    .select('userid, display_id, email, user_type, record_status, stamp')
     .order('email');
 
   if (error) console.error('[getUsers]', error.message);
-  return { data: data ?? [], error };
+
+  // Sort by display_id numeric part (user1 < user2 < ... < user16)
+  // This preserves the defined order: SUPERADMIN user1-6,
+  // ADMIN user7-11, USER user12-16
+  const sorted = (data ?? []).sort((a, b) => {
+    const numA = parseInt((a.display_id ?? '').replace('user', '')) || 999;
+    const numB = parseInt((b.display_id ?? '').replace('user', '')) || 999;
+    return numA - numB;
+  });
+
+  return { data: sorted, error };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

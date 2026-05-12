@@ -170,6 +170,9 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Ignore background refreshes
       if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
+      // On SIGNED_IN always clear the cache so re-login after activation
+      // always re-queries hr_user instead of using the stale cached state
+      if (event === 'SIGNED_IN') activeUserId.current = null;
       checkLoginGuard(session);
     });
 
