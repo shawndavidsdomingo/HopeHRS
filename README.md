@@ -5,7 +5,7 @@
 **A real-time, serverless library visitor management system for New Era University.**
 *Built to replace paper logbooks — one tap at a time.*
 
-[![Live on Vercel](https://img.shields.io/badge/▲_Vercel-infoman2--hope--hrs--olive.vercel.app-black?style=for-the-badge)](group2-infoman2-hope-hrs-olive.vercel.app)
+[![Live on Vercel](https://img.shields.io/badge/▲_Vercel-infoman2--hope--hrs--olive.vercel.app-black?style=for-the-badge)](https://group2-infoman2-hope-hrs-olive.vercel.app)
 
 > **2026 Information Management 2 — Finals Project**
 > New Era University · College of Informatics and Computing Studies
