@@ -2,6 +2,7 @@
 // Sprint 3 — M2 PR-02: feat/ui-reports
 // ─────────────────────────────────────────────────────────────────────────────
 // EmployeeHistoryReportPage:
+//   - Shows full employee list before any selection is made
 //   - Searchable employee selector (by empno, lastname, firstname)
 //   - Shows complete job history chronologically (job, dept, salary, effDate)
 //   - Data from getEmployeeFullHistory(empno) via reportsService.js
@@ -64,17 +65,17 @@ const fmt = (val) => `$${Number(val || 0).toLocaleString(undefined, { minimumFra
 export default function EmployeeHistoryReportPage() {
   const { currentUser } = useRights();
 
-  const [employees, setEmployees]   = useState([]);
-  const [search, setSearch]         = useState('');
-  const [selectedEmpno, setSelected] = useState('');
-  const [employee, setEmployee]     = useState(null);
-  const [history, setHistory]       = useState([]);
-  const [loadingList, setLoadingList] = useState(true);
+  const [employees, setEmployees]         = useState([]);
+  const [search, setSearch]               = useState('');
+  const [selectedEmpno, setSelected]      = useState('');
+  const [employee, setEmployee]           = useState(null);
+  const [history, setHistory]             = useState([]);
+  const [loadingList, setLoadingList]     = useState(true);
   const [loadingReport, setLoadingReport] = useState(false);
-  const [error, setError]           = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [error, setError]                 = useState('');
+  const [showDropdown, setShowDropdown]   = useState(false);
 
-  // Load employee list for selector
+  // Load employee list for selector + pre-selection table
   useEffect(() => {
     getEmployees(currentUser?.user_type).then(({ data }) => {
       setEmployees(data);
@@ -82,7 +83,7 @@ export default function EmployeeHistoryReportPage() {
     });
   }, [currentUser]);
 
-  // Filter employees by search
+  // Filter employees by search (dropdown)
   const filtered = employees.filter((e) => {
     const q = search.toLowerCase();
     return (
@@ -91,6 +92,19 @@ export default function EmployeeHistoryReportPage() {
       e.firstname.toLowerCase().includes(q)
     );
   }).slice(0, 10);
+
+  // Employees shown in the pre-selection table (filtered by search if typed,
+  // otherwise show all)
+  const tableList = search && !selectedEmpno
+    ? employees.filter((e) => {
+        const q = search.toLowerCase();
+        return (
+          e.empno.toLowerCase().includes(q) ||
+          e.lastname.toLowerCase().includes(q) ||
+          e.firstname.toLowerCase().includes(q)
+        );
+      })
+    : employees;
 
   // Load report when employee is selected
   const handleSelect = async (emp) => {
@@ -117,7 +131,7 @@ export default function EmployeeHistoryReportPage() {
     setError('');
   };
 
-  const cols = 5;
+  const historyCols = 5;
 
   return (
     <div>
@@ -150,7 +164,7 @@ export default function EmployeeHistoryReportPage() {
               disabled={loadingList}
             />
             {/* Dropdown */}
-            {showDropdown && search && filtered.length > 0 && (
+            {showDropdown && search && !selectedEmpno && filtered.length > 0 && (
               <div className="absolute z-10 top-full left-0 right-0 bg-white border border-slate-200 shadow-lg max-h-60 overflow-y-auto">
                 {filtered.map((emp) => (
                   <button
@@ -184,42 +198,84 @@ export default function EmployeeHistoryReportPage() {
         </div>
       )}
 
-      {/* Employee Profile Card */}
-      {employee && !loadingReport && (
-        <div className="border border-slate-200 bg-white p-5 mb-6">
-          <div className="flex items-start justify-between mb-3 pb-3 border-b border-slate-100">
-            <div>
-              <p className="text-lg font-bold text-slate-900 tracking-tight">
-                {employee.lastname}, {employee.firstname}
-              </p>
-              <p className="text-xs font-mono text-slate-400 mt-0.5">{employee.empno}</p>
-            </div>
-            <StatusBadge status={employee.record_status} />
+      {/* ── PRE-SELECTION: Employee List ── */}
+      {!selectedEmpno && !loadingReport && (
+        <>
+          <p className="text-xs text-slate-400 font-medium mb-3">
+            {loadingList ? '' : `${tableList.length} ${tableList.length === 1 ? 'employee' : 'employees'} found — click a row to view history`}
+          </p>
+          <div className="bg-white border border-slate-200 overflow-hidden">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Emp No</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Last Name</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">First Name</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingList ? (
+                  <SkeletonRows cols={4} />
+                ) : tableList.length > 0 ? (
+                  tableList.map((emp) => (
+                    <tr
+                      key={emp.empno}
+                      onClick={() => handleSelect(emp)}
+                      className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 cursor-pointer"
+                    >
+                      <td className="px-6 py-4 font-mono text-xs text-slate-400">{emp.empno}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{emp.lastname}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{emp.firstname}</td>
+                      <td className="px-6 py-4"><StatusBadge status={emp.record_status} /></td>
+                    </tr>
+                  ))
+                ) : (
+                  <EmptyState cols={4} label="No employees found" />
+                )}
+              </tbody>
+            </table>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 text-sm">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Gender</p>
-              <p className="text-slate-700">{employee.gender === 'M' ? 'Male' : 'Female'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Birthdate</p>
-              <p className="font-mono text-slate-700">{employee.birthdate ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Hire Date</p>
-              <p className="font-mono text-slate-700">{employee.hiredate ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Sep Date</p>
-              <p className="font-mono text-slate-700">{employee.sepdate ?? '—'}</p>
-            </div>
-          </div>
-        </div>
+        </>
       )}
 
-      {/* History Table */}
-      {(selectedEmpno || loadingReport) && (
+      {/* ── POST-SELECTION: Employee Profile + History ── */}
+      {selectedEmpno && (
         <>
+          {/* Employee Profile Card */}
+          {employee && !loadingReport && (
+            <div className="border border-slate-200 bg-white p-5 mb-6">
+              <div className="flex items-start justify-between mb-3 pb-3 border-b border-slate-100">
+                <div>
+                  <p className="text-lg font-bold text-slate-900 tracking-tight">
+                    {employee.lastname}, {employee.firstname}
+                  </p>
+                  <p className="text-xs font-mono text-slate-400 mt-0.5">{employee.empno}</p>
+                </div>
+                <StatusBadge status={employee.record_status} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 text-sm">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Gender</p>
+                  <p className="text-slate-700">{employee.gender === 'M' ? 'Male' : 'Female'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Birthdate</p>
+                  <p className="font-mono text-slate-700">{employee.birthdate ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Hire Date</p>
+                  <p className="font-mono text-slate-700">{employee.hiredate ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Sep Date</p>
+                  <p className="font-mono text-slate-700">{employee.sepdate ?? '—'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* History Table */}
           {!loadingReport && (
             <p className="text-xs text-slate-400 font-medium mb-3">
               {history.length} {history.length === 1 ? 'record' : 'records'} found
@@ -238,7 +294,7 @@ export default function EmployeeHistoryReportPage() {
               </thead>
               <tbody>
                 {loadingReport ? (
-                  <SkeletonRows cols={cols} />
+                  <SkeletonRows cols={historyCols} />
                 ) : history.length > 0 ? (
                   history.map((row, i) => (
                     <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
@@ -250,21 +306,12 @@ export default function EmployeeHistoryReportPage() {
                     </tr>
                   ))
                 ) : (
-                  <EmptyState cols={cols} label="No job history found" />
+                  <EmptyState cols={historyCols} label="No job history found" />
                 )}
               </tbody>
             </table>
           </div>
         </>
-      )}
-
-      {/* Prompt if nothing selected yet */}
-      {!selectedEmpno && !loadingReport && (
-        <div className="flex flex-col items-center justify-center py-24 border border-dashed border-slate-200">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-            Search for an employee above to view their history
-          </p>
-        </div>
       )}
     </div>
   );
