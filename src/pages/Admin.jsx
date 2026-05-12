@@ -105,7 +105,7 @@ export default function Admin() {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Admin Area</h1>
           {/* M4: Inform ADMIN-role viewers that actions are restricted */}
           {!canManage && (
             <p className="mt-1 text-xs text-slate-400 font-medium">

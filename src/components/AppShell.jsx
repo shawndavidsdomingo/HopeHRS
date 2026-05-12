@@ -23,6 +23,9 @@ import {
   LayoutGrid,
   LineChart,
   Settings,
+  BookUser,
+  Landmark,
+  Archive,
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
@@ -57,9 +60,9 @@ export default function AppShell() {
         label: 'Reports',
         GroupIcon: LineChart,
         items: [
-          { path: '/reports/headcount', label: 'Headcount Report', icon: <BarChart2 size={15} /> },
-          { path: '/reports/salary', label: 'Salary Report', icon: <BarChart2 size={15} /> },
-          { path: '/reports/employee-history', label: 'History Report', icon: <BarChart2 size={15} /> },
+          { path: '/reports/headcount', label: 'Headcount Report', icon: <BookUser size={15} /> },
+          { path: '/reports/salary', label: 'Salary Report', icon: <Landmark size={15} /> },
+          { path: '/reports/employee-history', label: 'History Report', icon: <Archive size={15} /> },
         ],
       });
     }
