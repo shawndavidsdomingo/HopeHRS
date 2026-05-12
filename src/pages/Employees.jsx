@@ -1,16 +1,7 @@
 // src/pages/Employees.jsx
 // Sprint 2 — M2 PR-01: feat/ui-employee-list
 // M4 PR-02: feat/rights-employee-jh — migrated to hasRight() from UserRightsContext
-// ─────────────────────────────────────────────────────────────────────────────
-// Full EmployeeListPage replacing the Sprint 1 placeholder.
-//
-// Features:
-//   - Fetches employees via getEmployees(userType) from employeeService.js
-//   - Stamp column visible to ADMIN and SUPERADMIN only (isAdminOrAbove)
-//   - INACTIVE rows hidden for USER (enforced by service + RLS)
-//   - Add button gated by hasRight('EMP_ADD')
-//   - Edit button gated by hasRight('EMP_EDIT')
-//   - Delete button gated by hasRight('EMP_DEL')
+// PR-03: fix/ui-final-polish — mobile responsive: overflow-x-auto, stacked header
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Trash2 } from 'lucide-react';
@@ -22,7 +13,6 @@ import AddEmployeeModal from '../components/AddEmployeeModal';
 import EditEmployeeModal from '../components/EditEmployeeModal';
 import SoftDeleteConfirmDialog from '../components/SoftDeleteConfirmDialog';
 
-// ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const map = {
     ACTIVE:   'bg-emerald-50 text-emerald-700 border border-emerald-200',
@@ -35,7 +25,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ── Separation Badge ──────────────────────────────────────────
 const SepBadge = ({ date }) => {
   if (!date) return <span className="text-slate-300 text-xs">—</span>;
   return (
@@ -45,7 +34,6 @@ const SepBadge = ({ date }) => {
   );
 };
 
-// ── Gender Pill ───────────────────────────────────────────────
 const GenderPill = ({ g }) => {
   const isMale = g === 'M';
   return (
@@ -59,7 +47,6 @@ const GenderPill = ({ g }) => {
   );
 };
 
-// ── Skeleton Rows ─────────────────────────────────────────────
 const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
@@ -77,7 +64,6 @@ const SkeletonRows = ({ cols, count = 7 }) => (
   </>
 );
 
-// ── Empty State ───────────────────────────────────────────────
 const EmptyState = ({ cols }) => (
   <tr>
     <td colSpan={cols} className="px-6 py-24 text-center">
@@ -91,9 +77,7 @@ const EmptyState = ({ cols }) => (
   </tr>
 );
 
-// ── Employees Page ────────────────────────────────────────────
 export default function Employees() {
-  // M4 PR-02: destructure hasRight + isAdminOrAbove instead of raw rights map
   const { currentUser, hasRight, isAdminOrAbove } = useRights();
 
   const [data, setData]                 = useState([]);
@@ -122,15 +106,11 @@ export default function Employees() {
     { header: 'Hire Date',   key: 'hiredate',  className: 'text-slate-500 font-mono text-xs' },
     { header: 'Separation',  render: (r) => <SepBadge date={r.sepdate} /> },
     { header: 'Status',      render: (r) => <StatusBadge status={r.record_status} /> },
-
-    // Stamp column — ADMIN and SUPERADMIN only (M4 PR-02: uses isAdminOrAbove)
     ...(isAdminOrAbove ? [{
       header: 'Stamp',
       key: 'stamp',
       className: 'text-slate-400 font-mono text-[10px]',
     }] : []),
-
-    // Actions column
     {
       header: '',
       align: 'right',
@@ -142,8 +122,6 @@ export default function Employees() {
           >
             View
           </Link>
-
-          {/* M4 PR-02: hasRight('EMP_EDIT') replaces rights.EMP_EDIT === 1 */}
           {hasRight('EMP_EDIT') && (
             <button
               onClick={() => setEditTarget(r)}
@@ -152,8 +130,6 @@ export default function Employees() {
               Edit
             </button>
           )}
-
-          {/* M4 PR-02: hasRight('EMP_DEL') replaces rights.EMP_DEL === 1 */}
           {hasRight('EMP_DEL') && r.record_status === 'ACTIVE' && (
             <button
               onClick={() => setDeleteTarget(r)}
@@ -169,92 +145,74 @@ export default function Employees() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
+      {/* Header — stacks on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Directory</h2>
           <p className="text-sm text-slate-400 mt-1 font-medium">All active personnel on record</p>
         </div>
-        {/* M4 PR-02: hasRight('EMP_ADD') replaces rights.EMP_ADD === 1 */}
         {hasRight('EMP_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold tracking-[0.12em] uppercase transition-colors duration-150 cursor-pointer shadow-sm"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold tracking-[0.12em] uppercase transition-colors duration-150 cursor-pointer shadow-sm self-start sm:self-auto"
           >
             <span className="text-base leading-none">+</span> Add Employee
           </button>
         )}
       </div>
 
-      {/* Record count */}
       {!loading && (
         <p className="text-xs text-slate-400 font-medium mb-3">
           {data.length} {data.length === 1 ? 'record' : 'records'} found
         </p>
       )}
 
-      {/* Table */}
+      {/* Table — horizontal scroll on mobile */}
       <div className="bg-white border border-slate-200 overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              {cols.map((col, idx) => (
-                <th
-                  key={idx}
-                  className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] ${col.align === 'right' ? 'text-right' : ''}`}
-                >
-                  {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <SkeletonRows cols={cols.length} />
-            ) : data.length > 0 ? (
-              data.map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75"
-                >
-                  {cols.map((col, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className={`px-6 py-4 text-sm ${col.className || 'text-slate-600'} ${col.align === 'right' ? 'text-right' : ''}`}
-                    >
-                      {col.render ? col.render(row) : row[col.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <EmptyState cols={cols.length} />
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
+                {cols.map((col, idx) => (
+                  <th
+                    key={idx}
+                    className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap ${col.align === 'right' ? 'text-right' : ''}`}
+                  >
+                    {col.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <SkeletonRows cols={cols.length} />
+              ) : data.length > 0 ? (
+                data.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75"
+                  >
+                    {cols.map((col, colIndex) => (
+                      <td
+                        key={colIndex}
+                        className={`px-6 py-4 text-sm whitespace-nowrap ${col.className || 'text-slate-600'} ${col.align === 'right' ? 'text-right' : ''}`}
+                      >
+                        {col.render ? col.render(row) : row[col.key]}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <EmptyState cols={cols.length} />
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Modals */}
-      {showAdd && (
-        <AddEmployeeModal
-          onClose={() => setShowAdd(false)}
-          onSuccess={fetchData}
-        />
-      )}
-      {editTarget && (
-        <EditEmployeeModal
-          employee={editTarget}
-          onClose={() => setEditTarget(null)}
-          onSuccess={fetchData}
-        />
-      )}
-      {deleteTarget && (
-        <SoftDeleteConfirmDialog
-          employee={deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          onSuccess={fetchData}
-        />
-      )}
+      {showAdd && <AddEmployeeModal onClose={() => setShowAdd(false)} onSuccess={fetchData} />}
+      {editTarget && <EditEmployeeModal employee={editTarget} onClose={() => setEditTarget(null)} onSuccess={fetchData} />}
+      {deleteTarget && <SoftDeleteConfirmDialog employee={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={fetchData} />}
     </div>
   );
 }

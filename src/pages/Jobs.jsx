@@ -1,11 +1,7 @@
 // src/pages/Jobs.jsx
 // Sprint 2 — M2 PR-03: feat/ui-job-dept
 // M4 PR-03: feat/rights-job-dept — migrated to hasRight() from UserRightsContext
-// ─────────────────────────────────────────────────────────────────────────────
-// Features:
-//   - Add button gated by hasRight('JOB_ADD')
-//   - Edit button gated by hasRight('JOB_EDIT')
-//   - Delete button gated by hasRight('JOB_DEL')
+// PR-03: fix/ui-final-polish — skeleton rows, mobile responsive table
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useCallback } from 'react';
@@ -16,14 +12,64 @@ import AddJobModal from '../components/AddJobModal';
 import EditJobModal from '../components/EditJobModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
+// ── Skeleton Rows ─────────────────────────────────────────────
+const SkeletonRows = ({ cols, count = 6 }) => (
+  <>
+    {Array.from({ length: count }).map((_, i) => (
+      <tr key={i} className="border-b border-slate-100">
+        {Array.from({ length: cols }).map((_, j) => (
+          <td key={j} className="px-4 py-3">
+            <div
+              className="h-3 bg-slate-100 animate-pulse"
+              style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
+            />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </>
+);
+
+// ── Empty State ───────────────────────────────────────────────
+const EmptyState = ({ cols }) => (
+  <tr>
+    <td colSpan={cols} className="px-6 py-24 text-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-10 h-10 border-2 border-dashed border-slate-200 flex items-center justify-center">
+          <span className="text-slate-300 text-lg">∅</span>
+        </div>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">No records found</p>
+      </div>
+    </td>
+  </tr>
+);
+
+function Th({ children, align = 'left' }) {
+  return <th className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-${align}`}>{children}</th>;
+}
+
+function Td({ children, align = 'left' }) {
+  return <td className={`px-4 py-3 text-sm text-slate-700 whitespace-nowrap text-${align}`}>{children}</td>;
+}
+
+function StatusBadge({ status }) {
+  const active = status === 'ACTIVE';
+  return (
+    <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded ${
+      active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
+    }`}>
+      {status || 'ACTIVE'}
+    </span>
+  );
+}
+
 export default function Jobs() {
-  // M4 PR-03: replaced manual role checks + raw rights map with hasRight()
   const { currentUser, hasRight } = useRights();
 
-  const [jobs, setJobs]               = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [showAdd, setShowAdd]         = useState(false);
-  const [editTarget, setEditTarget]   = useState(null);
+  const [jobs, setJobs]                 = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [showAdd, setShowAdd]           = useState(false);
+  const [editTarget, setEditTarget]     = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
@@ -47,14 +93,17 @@ export default function Jobs() {
     }
   };
 
+  const hasActions = hasRight('JOB_EDIT') || hasRight('JOB_DEL');
+  const colCount = hasActions ? 4 : 3;
+
   return (
     <div className="space-y-6 flex flex-col h-full">
+      {/* Header — stacks on mobile */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Jobs</h1>
           <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Manage job codes & descriptions</p>
         </div>
-        {/* M4 PR-03: hasRight('JOB_ADD') replaces canAdd = isAdmin || rights?.JOB_ADD === 1 */}
         {hasRight('JOB_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
@@ -65,63 +114,64 @@ export default function Jobs() {
         )}
       </div>
 
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-auto">
-        {loading ? (
-          <div className="p-12 text-center text-xs text-slate-400 font-medium animate-pulse">Loading jobs...</div>
-        ) : (
+      {/* Table — horizontal scroll on mobile */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <Th>Job Code</Th>
                 <Th>Description</Th>
                 <Th>Status</Th>
-                {/* M4 PR-03: hasRight() replaces canEdit / canDelete local vars */}
-                {(hasRight('JOB_EDIT') || hasRight('JOB_DEL')) && <Th align="right">Actions</Th>}
+                {hasActions && <Th align="right">Actions</Th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {jobs.map((job) => (
-                <tr key={job.jobcode} className={`hover:bg-slate-50/50 transition-colors ${job.record_status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                  <Td>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
-                        <Briefcase size={12} className="text-indigo-600" />
-                      </div>
-                      <span className="font-mono text-indigo-600 font-bold">{job.jobcode}</span>
-                    </div>
-                  </Td>
-                  <Td>{job.jobdesc}</Td>
-                  <Td><StatusBadge status={job.record_status || 'ACTIVE'} /></Td>
-
-                  {(hasRight('JOB_EDIT') || hasRight('JOB_DEL')) && (
-                    <Td align="right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* M4 PR-03: hasRight('JOB_EDIT') replaces canEdit */}
-                        {hasRight('JOB_EDIT') && job.record_status !== 'INACTIVE' && (
-                          <button
-                            onClick={() => setEditTarget(job)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer rounded"
-                          >
-                            <Pencil size={10} /> Edit
-                          </button>
-                        )}
-                        {/* M4 PR-03: hasRight('JOB_DEL') replaces canDelete = isSuperAdmin */}
-                        {hasRight('JOB_DEL') && job.record_status !== 'INACTIVE' && (
-                          <button
-                            onClick={() => setDeleteTarget(job)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-rose-500 uppercase tracking-widest border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer rounded"
-                          >
-                            <Trash2 size={10} /> Delete
-                          </button>
-                        )}
+              {loading ? (
+                <SkeletonRows cols={colCount} />
+              ) : jobs.length > 0 ? (
+                jobs.map((job) => (
+                  <tr key={job.jobcode} className={`hover:bg-slate-50/50 transition-colors ${job.record_status === 'INACTIVE' ? 'opacity-50' : ''}`}>
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center shrink-0">
+                          <Briefcase size={12} className="text-indigo-600" />
+                        </div>
+                        <span className="font-mono text-indigo-600 font-bold">{job.jobcode}</span>
                       </div>
                     </Td>
-                  )}
-                </tr>
-              ))}
+                    <Td>{job.jobdesc}</Td>
+                    <Td><StatusBadge status={job.record_status || 'ACTIVE'} /></Td>
+                    {hasActions && (
+                      <Td align="right">
+                        <div className="flex items-center justify-end gap-2">
+                          {hasRight('JOB_EDIT') && job.record_status !== 'INACTIVE' && (
+                            <button
+                              onClick={() => setEditTarget(job)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer rounded"
+                            >
+                              <Pencil size={10} /> Edit
+                            </button>
+                          )}
+                          {hasRight('JOB_DEL') && job.record_status !== 'INACTIVE' && (
+                            <button
+                              onClick={() => setDeleteTarget(job)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-rose-500 uppercase tracking-widest border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer rounded"
+                            >
+                              <Trash2 size={10} /> Delete
+                            </button>
+                          )}
+                        </div>
+                      </Td>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <EmptyState cols={colCount} />
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
       {showAdd && <AddJobModal onClose={() => setShowAdd(false)} onSuccess={load} />}
@@ -135,24 +185,5 @@ export default function Jobs() {
         />
       )}
     </div>
-  );
-}
-
-function Th({ children, align = 'left' }) {
-  return <th className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-${align}`}>{children}</th>;
-}
-
-function Td({ children, align = 'left' }) {
-  return <td className={`px-4 py-3 text-sm text-slate-700 text-${align}`}>{children}</td>;
-}
-
-function StatusBadge({ status }) {
-  const active = status === 'ACTIVE';
-  return (
-    <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded ${
-      active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
-    }`}>
-      {status || 'ACTIVE'}
-    </span>
   );
 }
