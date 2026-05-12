@@ -2,70 +2,165 @@
 // Sprint 3 — PR-03: fix/ui-final-polish
 // M4 PR-01: feat/rights-admin-module — Admin sidebar link gated by hasRight('ADM_USER')
 // M4: Admin link positioned below Deleted Items per sidebar order requirement
+// Sidebar: grouped sections (Manage, Reports, Admin) with collapsible headers
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield, BarChart2, Menu, X } from 'lucide-react';
+import {
+  Users,
+  Briefcase,
+  Building,
+  History,
+  LogOut,
+  ChevronRight,
+  ChevronDown,
+  Trash2,
+  Shield,
+  BarChart2,
+  Menu,
+  X,
+  LayoutGrid,
+  LineChart,
+  Settings,
+  BookUser,
+  Landmark,
+  Archive,
+} from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
+import UserTypeBadge from './UserTypeBadge';
 
 export default function AppShell() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { currentUser, isAdminOrAbove, hasRight } = useRights();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState({
+    manage: true,
+    reports: true,
+    admin: true,
+  });
+
+  const navGroups = useMemo(() => {
+    const manageItems = [
+      { path: '/employees', label: 'Employees', icon: <Users size={15} /> },
+      { path: '/jobhistory', label: 'Job History', icon: <History size={15} /> },
+      { path: '/jobs', label: 'Job Catalogue', icon: <Briefcase size={15} /> },
+      { path: '/departments', label: 'Departments', icon: <Building size={15} /> },
+    ];
+
+    const groups = [
+      { key: 'manage', label: 'Manage', GroupIcon: LayoutGrid, items: manageItems },
+    ];
+
+    if (isAdminOrAbove) {
+      groups.push({
+        key: 'reports',
+        label: 'Reports',
+        GroupIcon: LineChart,
+        items: [
+          { path: '/reports/headcount', label: 'Headcount Report', icon: <BookUser size={15} /> },
+          { path: '/reports/salary', label: 'Salary Report', icon: <Landmark size={15} /> },
+          { path: '/reports/employee-history', label: 'History Report', icon: <Archive size={15} /> },
+        ],
+      });
+    }
+
+    const adminItems = [];
+    if (isAdminOrAbove) {
+      adminItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
+    }
+    if (hasRight('ADM_USER')) {
+      adminItems.push({ path: '/admin', label: 'Account Access', icon: <Shield size={15} /> });
+    }
+    if (adminItems.length) {
+      groups.push({ key: 'admin', label: 'Admin', GroupIcon: Settings, items: adminItems });
+    }
+
+    return groups;
+  }, [isAdminOrAbove, hasRight]);
+
+  const allNavItems = useMemo(() => navGroups.flatMap((g) => g.items), [navGroups]);
+
+  const currentPage =
+    allNavItems.find((i) => location.pathname.startsWith(i.path))?.label || 'Dashboard';
+
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const g of navGroups) {
+        const hasActive = g.items.some((item) => location.pathname.startsWith(item.path));
+        if (hasActive && !next[g.key]) {
+          next[g.key] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [location.pathname, navGroups]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
 
-  const baseMenuItems = [
-    { path: '/employees',   label: 'Employees',     icon: <Users size={15} /> },
-    { path: '/jobhistory',  label: 'Job History',   icon: <History size={15} /> },
-    { path: '/jobs',        label: 'Job Catalogue', icon: <Briefcase size={15} /> },
-    { path: '/departments', label: 'Departments',   icon: <Building size={15} /> },
-  ];
-
-  const menuItems = [...baseMenuItems];
-
-  if (isAdminOrAbove) {
-    // M4: Deleted Items comes first, then Admin (if ADM_USER right), then reports
-    menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
-  }
-
-  // M4 PR-01: Admin link gated by ADM_USER right, positioned directly below Deleted Items
-  if (hasRight('ADM_USER')) {
-    menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
-  }
-
-  if (isAdminOrAbove) {
-    menuItems.push({ path: '/reports/headcount',        label: 'Headcount Report', icon: <BarChart2 size={15} /> });
-    menuItems.push({ path: '/reports/salary',           label: 'Salary Report',    icon: <BarChart2 size={15} /> });
-    menuItems.push({ path: '/reports/employee-history', label: 'History Report',   icon: <BarChart2 size={15} /> });
-  }
-
-  const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
-
   const NavLinks = () => (
     <>
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {menuItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            onClick={() => setSidebarOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded transition-all duration-150 ${
-              location.pathname.startsWith(item.path)
-                ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            {item.icon}
-            <span className="tracking-wide">{item.label}</span>
-          </Link>
-        ))}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-5">
+        {navGroups.map((group) => {
+          const GroupIcon = group.GroupIcon;
+          const expanded = openGroups[group.key] ?? true;
+          const btnId = `nav-group-${group.key}-btn`;
+          const regionId = `nav-group-${group.key}-links`;
+          return (
+            <div key={group.key} className="space-y-1">
+              <button
+                type="button"
+                id={btnId}
+                aria-expanded={expanded}
+                aria-controls={regionId}
+                onClick={() => setOpenGroups((p) => ({ ...p, [group.key]: !p[group.key] }))}
+                className="flex items-center gap-2 w-full px-3 py-2 text-left rounded transition-colors text-slate-500 hover:bg-slate-50 hover:text-slate-800 cursor-pointer border-0 bg-transparent"
+              >
+                <GroupIcon size={15} className="shrink-0 text-slate-400" />
+                <span className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {group.label}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 text-slate-400 ${expanded ? '' : '-rotate-90'}`}
+                  aria-hidden
+                />
+              </button>
+              {expanded ? (
+                <div
+                  id={regionId}
+                  role="region"
+                  aria-labelledby={btnId}
+                  className="space-y-1 pt-0.5 pl-2.5"
+                >
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded transition-all duration-150 ${
+                        location.pathname.startsWith(item.path)
+                          ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="tracking-wide">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </nav>
       <div className="px-3 pb-5 pt-2 border-t border-slate-200 space-y-1">
         <button
@@ -128,8 +223,21 @@ export default function AppShell() {
               <span className="text-slate-700 font-semibold">{currentPage}</span>
             </div>
           </div>
-          <div className="w-7 h-7 bg-slate-900 flex items-center justify-center text-white rounded-full text-xs font-bold uppercase">
-            {currentUser?.email?.charAt(0) || 'U'}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 max-w-[min(100%,11rem)] sm:max-w-xs md:max-w-sm shrink">
+            <div className="min-w-0 flex flex-col gap-0.5 items-end text-right">
+              <span
+                className="text-xs text-slate-600 font-medium truncate w-full"
+                title={currentUser?.email || undefined}
+              >
+                {currentUser?.email || '—'}
+              </span>
+              {currentUser?.user_type ? (
+                <UserTypeBadge type={currentUser.user_type} />
+              ) : null}
+            </div>
+            <div className="w-9 h-9 shrink-0 bg-slate-900 flex items-center justify-center text-white rounded-full text-xs font-bold uppercase">
+              {currentUser?.email?.charAt(0) || 'U'}
+            </div>
           </div>
         </header>
 
