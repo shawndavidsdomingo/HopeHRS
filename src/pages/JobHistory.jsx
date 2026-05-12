@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
 import { Trash2 } from 'lucide-react';
-import { softDeleteJobHistory } from '../lib/Jobhistoryservice';
+import { softDeleteJobHistory } from '../lib/jobHistoryService';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
 const StatusBadge = ({ status }) => {
