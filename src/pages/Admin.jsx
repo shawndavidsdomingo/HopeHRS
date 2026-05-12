@@ -1,6 +1,7 @@
 // src/pages/Admin.jsx
 // Sprint 3 — M2 PR-01: feat/ui-admin-users
 // PR-03: fix/ui-final-polish — mobile responsive table, stacked header
+// M4 PR-01: feat/rights-admin-module — canManage migrated to hasRight('ADM_USER')
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -64,13 +65,15 @@ const EmptyState = ({ cols }) => (
 );
 
 export default function Admin() {
-  const { currentUser, rights } = useRights();
-  const [users, setUsers]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [toast, setToast]       = useState(null);
-  const [actingOn, setActingOn] = useState(null);
+  // M4 PR-01: replaced rights.ADM_USER === 1 with hasRight('ADM_USER')
+  const { currentUser, hasRight } = useRights();
+  const [users, setUsers]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [toast, setToast]         = useState(null);
+  const [actingOn, setActingOn]   = useState(null);
 
-  const canManage = rights.ADM_USER === 1;
+  // M4 PR-01: canManage now uses hasRight instead of raw rights map
+  const canManage = hasRight('ADM_USER');
   const cols = 5;
 
   const fetchUsers = async () => {
@@ -104,19 +107,12 @@ export default function Admin() {
     setActingOn(null);
   };
 
-return (
+  return (
     <div className="max-w-6xl mx-auto">
-      {/* ── Page Header & Toolbar ── */}
+      {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-          {/* Note: add your existing Search Input here if you have one */}
-          <div className="relative w-full sm:w-64">
-             {/* ... search input code ... */}
-          </div>
         </div>
       </div>
 
@@ -137,7 +133,7 @@ return (
         </p>
       )}
 
-      {/* Table — horizontal scroll on mobile */}
+      {/* Table */}
       <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
