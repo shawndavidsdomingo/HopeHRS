@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/005_rls_jobhistory_job_dept.sql
+-- db/migrations/006_rls_jobhistory_job_dept.sql
 -- Sprint 2 — M3 PR-02: db/rls-jobhistory-job-dept
 -- ============================================================
 -- Applies the same 5-policy RLS pattern from PR-01 (employee)

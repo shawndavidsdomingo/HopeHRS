@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/008_trigger_sync_seeded_uid.sql
+-- db/migrations/009_trigger_sync_seeded_uid.sql
 -- Hotfix: fix/sync-seeded-uid-on-login
 -- ============================================================
 -- Problem:

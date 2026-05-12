@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/004_rls_employee.sql
+-- db/migrations/005_rls_employee.sql
 -- Sprint 2 — M3 PR-01: db/rls-employee
 -- ============================================================
 -- RLS policies for the employee table.

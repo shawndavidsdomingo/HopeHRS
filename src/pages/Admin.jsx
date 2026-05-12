@@ -69,6 +69,18 @@ export default function Admin() {
   const canManage = isSuperAdmin;
   const cols = 5;
 
+  const [search, setSearch] = useState('');
+
+  const displayed = users.filter(u => {
+    const q = search.toLowerCase();
+    return (
+      (u.display_id ?? u.userid ?? '').toLowerCase().includes(q) ||
+      (u.email      ?? '').toLowerCase().includes(q) ||
+      (u.user_type  ?? '').toLowerCase().includes(q) ||
+      (u.record_status ?? '').toLowerCase().includes(q)
+    );
+  });
+
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await getUsers();
@@ -114,12 +126,25 @@ export default function Admin() {
           )}
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-          {/* Note: add your existing Search Input here if you have one */}
-          <div className="relative w-full sm:w-64">
-             {/* ... search input code ... */}
-          </div>
+      </div>
+
+      {/* Search */}
+      <div className="flex flex-col gap-2">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Search Users</label>
+        <div className="w-full">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by user ID, email, type, or status..."
+            className="w-full border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-indigo-400"
+          />
         </div>
+        {!loading && (
+          <p className="text-xs text-slate-400 font-medium">
+            {displayed.length} {displayed.length === 1 ? 'user' : 'users'} found
+          </p>
+        )}
       </div>
 
       {/* Toast */}
@@ -132,10 +157,6 @@ export default function Admin() {
           {toast.message}
         </div>
       )}
-
-      <p className="text-xs text-slate-400 font-medium mb-3">
-        {users.length} {users.length === 1 ? 'user' : 'users'} found
-      </p>
 
       {/* Table */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
@@ -153,8 +174,8 @@ export default function Admin() {
             <tbody>
               {loading ? (
                 <SkeletonRows cols={cols} />
-              ) : users.length > 0 ? (
-                users.map((user) => {
+              ) : displayed.length > 0 ? (
+                displayed.map((user) => {
                   const isSuperAdminRow = user.user_type === 'SUPERADMIN';
                   const isActive        = user.record_status === 'ACTIVE';
                   const isActing        = actingOn === user.userid;
