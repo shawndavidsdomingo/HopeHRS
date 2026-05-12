@@ -1,6 +1,7 @@
 // src/contexts/UserRightsContext.jsx
 // M4 PR-01  feat/rights-context
 // Sprint 3 fix: replaced .single() with .maybeSingle() in hr_user lookup
+// M4: added isSuperAdmin derived value for action-level gating in Admin panel
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
@@ -54,17 +55,12 @@ export function UserRightsProvider({ children }) {
     setLoadingRights(true);
 
     try {
-      // FIX: .maybeSingle() instead of .single()
-      // .single() throws PGRST116 when 0 rows found — caused ADMIN accounts
-      // to fail silently, leaving currentUser = null and isAdminOrAbove = false,
-      // which hid the Deleted Items and Admin sidebar links for ADMIN accounts
       const { data: userRow, error: userError } = await supabase
         .from('hr_user')
         .select('userid, email, user_type, record_status')
         .eq('email', session.user.email)
         .maybeSingle();
 
-      // Debug log — remove after confirming sidebar fix works
       console.log('[UserRightsContext] hr_user row:', userRow, 'error:', userError?.message);
 
       if (userError || !userRow) {
@@ -80,10 +76,11 @@ export function UserRightsProvider({ children }) {
 
       setCurrentUser({ ...userRow });
 
-      // Debug log — confirms user_type value for isAdminOrAbove check
       console.log('[UserRightsContext] user_type:', userRow.user_type,
         '| isAdminOrAbove will be:',
-        userRow.user_type === 'ADMIN' || userRow.user_type === 'SUPERADMIN'
+        userRow.user_type === 'ADMIN' || userRow.user_type === 'SUPERADMIN',
+        '| isSuperAdmin will be:',
+        userRow.user_type === 'SUPERADMIN'
       );
 
       const { data: rightsRows, error: rightsError } = await supabase
@@ -105,7 +102,6 @@ export function UserRightsProvider({ children }) {
         }
       });
 
-      // Debug log — confirms rights loaded correctly
       console.log('[UserRightsContext] rights loaded:', rightsRows?.length, 'rows',
         '| ADM_USER:', rightsMap['ADM_USER']
       );
@@ -128,6 +124,10 @@ export function UserRightsProvider({ children }) {
     currentUser?.user_type === 'ADMIN' ||
     currentUser?.user_type === 'SUPERADMIN';
 
+  // M4: SUPERADMIN-exclusive flag — used to gate action buttons in Admin panel
+  // ADMIN can view the panel (via ADM_USER right) but cannot activate/deactivate
+  const isSuperAdmin = currentUser?.user_type === 'SUPERADMIN';
+
   const value = {
     currentUser,
     rights,
@@ -135,6 +135,7 @@ export function UserRightsProvider({ children }) {
     hasRight,
     canDo,
     isAdminOrAbove,
+    isSuperAdmin,
   };
 
   return (
