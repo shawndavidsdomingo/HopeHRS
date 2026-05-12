@@ -1,6 +1,7 @@
 // src/components/AppShell.jsx
 // Sprint 3 — PR-03: fix/ui-final-polish
-// Fix: mobile hamburger menu — sidebar slides in as overlay on small screens
+// M4 PR-01: feat/rights-admin-module — Admin sidebar link gated by hasRight('ADM_USER')
+// Previously gated by isAdminOrAbove — now correctly uses the ADM_USER right
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
@@ -12,7 +13,8 @@ import { useRights } from '../contexts/UserRightsContext';
 export default function AppShell() {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { currentUser, isAdminOrAbove } = useRights();
+  // M4 PR-01: added hasRight to destructure for ADM_USER gating
+  const { currentUser, isAdminOrAbove, hasRight } = useRights();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -30,10 +32,15 @@ export default function AppShell() {
   const menuItems = [...baseMenuItems];
   if (isAdminOrAbove) {
     menuItems.push({ path: '/deleted-items',            label: 'Deleted Items',    icon: <Trash2    size={15} /> });
-    menuItems.push({ path: '/admin',                    label: 'Admin',            icon: <Shield    size={15} /> });
     menuItems.push({ path: '/reports/headcount',        label: 'Headcount Report', icon: <BarChart2 size={15} /> });
     menuItems.push({ path: '/reports/salary',           label: 'Salary Report',    icon: <BarChart2 size={15} /> });
     menuItems.push({ path: '/reports/employee-history', label: 'History Report',   icon: <BarChart2 size={15} /> });
+  }
+
+  // M4 PR-01: Admin link gated by ADM_USER right, not isAdminOrAbove
+  // Only users with ADM_USER === 1 in user_module_rights see this link
+  if (hasRight('ADM_USER')) {
+    menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
   }
 
   const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
@@ -101,11 +108,8 @@ export default function AppShell() {
 
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-
-        {/* Topbar */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0">
           <div className="flex items-center gap-3">
-            {/* Hamburger — mobile only */}
             <button
               onClick={() => setSidebarOpen(true)}
               className="md:hidden text-slate-500 hover:text-slate-800 cursor-pointer"
