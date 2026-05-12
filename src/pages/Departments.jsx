@@ -99,10 +99,10 @@ export default function Departments() {
   return (
     <div className="space-y-6 flex flex-col h-full">
       {/* Header — stacks on mobile */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Departments</h1>
-          <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Manage company departments</p>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Departments</h1>
+          <p className="text-sm text-slate-400 mt-1 font-medium">Manage company departments</p>
         </div>
         {hasRight('DEPT_ADD') && (
           <button
@@ -114,16 +114,20 @@ export default function Departments() {
         )}
       </div>
 
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {depts.length} {depts.length === 1 ? 'record' : 'records'} found
+      </p>
+
       {/* Table — horizontal scroll on mobile */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <Th>Dept Code</Th>
-                <Th>Department Name</Th>
-                <Th>Status</Th>
-                {hasActions && <Th align="right">Actions</Th>}
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Dept Code</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Department Name</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Status</th>
+                {hasActions && <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

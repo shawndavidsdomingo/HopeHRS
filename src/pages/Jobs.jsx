@@ -18,7 +18,7 @@ const SkeletonRows = ({ cols, count = 6 }) => (
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
         {Array.from({ length: cols }).map((_, j) => (
-          <td key={j} className="px-4 py-3">
+          <td key={j} className="px-6 py-4">
             <div
               className="h-3 bg-slate-100 animate-pulse"
               style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
@@ -45,11 +45,11 @@ const EmptyState = ({ cols }) => (
 );
 
 function Th({ children, align = 'left' }) {
-  return <th className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-${align}`}>{children}</th>;
+  return <th className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap-${align}`}>{children}</th>;
 }
 
 function Td({ children, align = 'left' }) {
-  return <td className={`px-4 py-3 text-sm text-slate-700 whitespace-nowrap text-${align}`}>{children}</td>;
+  return <td className={`px-6 py-4 text-sm text-slate-700 whitespace-nowrap text-${align}`}>{children}</td>;
 }
 
 function StatusBadge({ status }) {
@@ -99,10 +99,10 @@ export default function Jobs() {
   return (
     <div className="space-y-6 flex flex-col h-full">
       {/* Header — stacks on mobile */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Jobs</h1>
-          <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Manage job codes & descriptions</p>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Jobs</h1>
+          <p className="text-sm text-slate-400 mt-1 font-medium">Manage job codes & descriptions</p>
         </div>
         {hasRight('JOB_ADD') && (
           <button
@@ -114,11 +114,15 @@ export default function Jobs() {
         )}
       </div>
 
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {jobs.length} {jobs.length === 1 ? 'record' : 'records'} found
+      </p>
+
       {/* Table — horizontal scroll on mobile */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
               <tr className="bg-slate-50 border-b border-slate-200">
                 <Th>Job Code</Th>
                 <Th>Description</Th>

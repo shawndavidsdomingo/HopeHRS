@@ -134,11 +134,11 @@ export default function EmployeeHistoryReportPage() {
   const historyCols = 5;
 
   return (
-    <div>
+    <div className="space-y-6 flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Employee History Report</h2>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Employee History Report</h1>
           <p className="text-sm text-slate-400 mt-1 font-medium">Complete job history for a selected employee</p>
         </div>
       </div>
@@ -198,43 +198,46 @@ export default function EmployeeHistoryReportPage() {
         </div>
       )}
 
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {loadingList ? '' : `${tableList.length} ${tableList.length === 1 ? 'employee' : 'employees'} found — click a row to view history`}
+      </p>
+
       {/* ── PRE-SELECTION: Employee List ── */}
       {!selectedEmpno && !loadingReport && (
         <>
-          <p className="text-xs text-slate-400 font-medium mb-3">
-            {loadingList ? '' : `${tableList.length} ${tableList.length === 1 ? 'employee' : 'employees'} found — click a row to view history`}
-          </p>
-          <div className="bg-white border border-slate-200 overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Emp No</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Last Name</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">First Name</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loadingList ? (
-                  <SkeletonRows cols={4} />
-                ) : tableList.length > 0 ? (
-                  tableList.map((emp) => (
-                    <tr
-                      key={emp.empno}
-                      onClick={() => handleSelect(emp)}
-                      className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 cursor-pointer"
-                    >
-                      <td className="px-6 py-4 font-mono text-xs text-slate-400">{emp.empno}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{emp.lastname}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{emp.firstname}</td>
-                      <td className="px-6 py-4"><StatusBadge status={emp.record_status} /></td>
-                    </tr>
-                  ))
-                ) : (
-                  <EmptyState cols={4} label="No employees found" />
-                )}
-              </tbody>
-            </table>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+            <div className="overflow-x-auto h-full">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Emp No</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Last Name</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">First Name</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingList ? (
+                    <SkeletonRows cols={4} />
+                  ) : tableList.length > 0 ? (
+                    tableList.map((emp) => (
+                      <tr
+                        key={emp.empno}
+                        onClick={() => handleSelect(emp)}
+                        className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 cursor-pointer"
+                      >
+                        <td className="px-6 py-4 font-mono text-xs text-slate-400">{emp.empno}</td>
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-800">{emp.lastname}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600">{emp.firstname}</td>
+                        <td className="px-6 py-4"><StatusBadge status={emp.record_status} /></td>
+                      </tr>
+                    ))
+                  ) : (
+                    <EmptyState cols={4} label="No employees found" />
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
@@ -283,8 +286,8 @@ export default function EmployeeHistoryReportPage() {
           )}
           <div className="bg-white border border-slate-200 overflow-hidden">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
+              <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+                <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Job Code</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Job Description</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Department</th>

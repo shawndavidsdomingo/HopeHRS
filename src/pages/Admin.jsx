@@ -108,11 +108,11 @@ export default function Admin() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="space-y-6 flex flex-col h-full">
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Admin Area</h1>
         </div>
       </div>
 
@@ -127,18 +127,16 @@ export default function Admin() {
         </div>
       )}
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium mb-3">
-          {users.length} {users.length === 1 ? 'user' : 'users'} found
-        </p>
-      )}
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {users.length} {users.length === 1 ? 'user' : 'users'} found
+      </p>
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">User ID</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Email</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">User Type</th>

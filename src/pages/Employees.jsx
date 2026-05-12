@@ -4,7 +4,7 @@
 // PR-03: fix/ui-final-polish — mobile responsive: overflow-x-auto, stacked header
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getEmployees } from '../lib/employeeService';
@@ -144,35 +144,33 @@ export default function Employees() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6 flex flex-col h-full">
       {/* Header — stacks on mobile */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Directory</h2>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Employee Directory</h1>
           <p className="text-sm text-slate-400 mt-1 font-medium">All active personnel on record</p>
         </div>
         {hasRight('EMP_ADD') && (
           <button
             onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-xs font-bold tracking-[0.12em] uppercase transition-colors duration-150 cursor-pointer shadow-sm self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest rounded shadow-sm transition-all"
           >
-            <span className="text-base leading-none">+</span> Add Employee
+            <Plus size={14} /> Add Employee
           </button>
         )}
       </div>
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium mb-3">
-          {data.length} {data.length === 1 ? 'record' : 'records'} found
-        </p>
-      )}
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {data.length} {data.length === 1 ? 'record' : 'records'} found
+      </p>
 
       {/* Table — horizontal scroll on mobile */}
-      <div className="bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 {cols.map((col, idx) => (
                   <th
                     key={idx}

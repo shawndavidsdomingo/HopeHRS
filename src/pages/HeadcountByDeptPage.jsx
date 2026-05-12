@@ -78,10 +78,10 @@ export default function HeadcountByDeptPage() {
   }, []);
 
   return (
-    <div>
-      <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
+    <div className="space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Headcount by Department</h2>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Headcount by Department</h1>
           <p className="text-sm text-slate-400 mt-1 font-medium">Active employee count per department</p>
         </div>
       </div>
@@ -90,19 +90,17 @@ export default function HeadcountByDeptPage() {
         <div className="mb-5 px-4 py-3 text-sm font-medium border bg-rose-50 border-rose-200 text-rose-700">{error}</div>
       )}
 
-      {!loading && data.length > 0 && <HeadcountBarChart data={data} />}
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {data.length} {data.length === 1 ? 'department' : 'departments'} found
+      </p>
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium mb-3">
-          {data.length} {data.length === 1 ? 'department' : 'departments'} found
-        </p>
-      )}
+      {!loading && data.length > 0 && <HeadcountBarChart data={data} />}
 
       <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Dept Code</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Department Name</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Active Headcount</th>
