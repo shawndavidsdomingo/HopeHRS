@@ -10,13 +10,13 @@ import { getDepts, recoverDept } from '../lib/departmentService';
 import { recoverJobHistory } from '../lib/jobHistoryService';
 import { supabase } from '../lib/supabaseClient';
 
-// ── Skeleton Rows ─────────────────────────────────────────────
-const SkeletonRows = ({ count = 5 }) => (
+// ── Skeleton Rows (match Employees.jsx) ──
+const SkeletonRows = ({ count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
         {[60, 90, 20].map((w, j) => (
-          <td key={j} className="p-4">
+          <td key={j} className="px-6 py-4">
             <div
               className="h-3 bg-slate-100 animate-pulse"
               style={{ width: `${w}%`, animationDelay: `${i * 60}ms` }}
@@ -122,13 +122,15 @@ export default function DeletedItems() {
 
   return (
     <div className="flex flex-col h-full">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Deleted Items</h1>
-        <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Trash Bin & Recovery</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
+        <div>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Deleted Items</h1>
+          <p className="text-sm text-slate-400 mt-1 font-medium">Trash Bin & Recovery</p>
+        </div>
       </div>
 
       {/* Tabs — scrollable on mobile */}
-      <div className="flex overflow-x-auto gap-0 border-b border-slate-200 mt-6 shrink-0">
+      <div className="flex overflow-x-auto gap-0 border-b border-slate-200 shrink-0">
         {tabs.map(tab => (
           <button
             key={tab}
@@ -145,27 +147,27 @@ export default function DeletedItems() {
       </div>
 
       {/* Table — horizontal scroll on mobile */}
-      <div className="mt-6 flex-1 overflow-hidden bg-white rounded-lg border border-slate-200 shadow-sm">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap w-1/2">Details</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Stamp</th>
-                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right whitespace-nowrap">Actions</th>
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap w-1/2">Details</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Stamp</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {loading ? (
                 <SkeletonRows />
               ) : data.length === 0 ? (
                 <EmptyState label={`No deleted ${activeTab.toLowerCase()} found`} />
               ) : (
                 data.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="p-4 text-sm">{renderItemDetails(item)}</td>
-                    <td className="p-4 text-xs text-slate-400 font-mono tracking-tight whitespace-nowrap">{item.stamp || 'No stamp available'}</td>
-                    <td className="p-4 text-right">
+                  <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
+                    <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{renderItemDetails(item)}</td>
+                    <td className="px-6 py-4 text-xs text-slate-400 font-mono tracking-tight whitespace-nowrap">{item.stamp || 'No stamp available'}</td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
                       <button
                         onClick={() => handleRecover(item)}
                         className="px-3 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded shadow-sm hover:bg-indigo-600 hover:text-white transition-all duration-200 cursor-pointer whitespace-nowrap"

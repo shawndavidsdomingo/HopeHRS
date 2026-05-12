@@ -6,13 +6,16 @@
 import { useEffect, useState } from 'react';
 import { getHeadcountByDept } from '../lib/reportsService';
 
-const SkeletonRows = ({ cols, count = 6 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
         {Array.from({ length: cols }).map((_, j) => (
           <td key={j} className="px-6 py-4">
-            <div className="h-3 bg-slate-100 animate-pulse" style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }} />
+            <div
+              className="h-3 bg-slate-100 animate-pulse"
+              style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
+            />
           </td>
         ))}
       </tr>
@@ -78,10 +81,10 @@ export default function HeadcountByDeptPage() {
   }, []);
 
   return (
-    <div>
-      <div className="flex items-end justify-between mb-6 pb-5 border-b border-slate-200">
+    <div className="space-y-6 flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Headcount by Department</h2>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Headcount by Department</h1>
           <p className="text-sm text-slate-400 mt-1 font-medium">Active employee count per department</p>
         </div>
       </div>
@@ -90,19 +93,17 @@ export default function HeadcountByDeptPage() {
         <div className="mb-5 px-4 py-3 text-sm font-medium border bg-rose-50 border-rose-200 text-rose-700">{error}</div>
       )}
 
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {data.length} {data.length === 1 ? 'department' : 'departments'} found
+      </p>
+
       {!loading && data.length > 0 && <HeadcountBarChart data={data} />}
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium mb-3">
-          {data.length} {data.length === 1 ? 'department' : 'departments'} found
-        </p>
-      )}
-
-      <div className="bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Dept Code</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Department Name</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Active Headcount</th>
@@ -116,8 +117,8 @@ export default function HeadcountByDeptPage() {
                   <tr key={row.deptcode} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
                     <td className="px-6 py-4 font-mono text-xs text-slate-400 whitespace-nowrap">{row.deptcode}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{row.deptname}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="font-mono text-sm font-bold text-indigo-600">{row.activeheadcount}</span>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <span className="font-mono text-sm font-bold text-slate-800">{row.activeheadcount}</span>
                     </td>
                   </tr>
                 ))

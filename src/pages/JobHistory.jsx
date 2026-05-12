@@ -94,23 +94,24 @@ export default function JobHistory() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Job History</h1>
-        <p className="mt-1 text-xs text-slate-500 uppercase tracking-wide">Historical Employee Placements</p>
+      {/* Header — stacks on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
+        <div>
+          <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Job History</h1>
+          <p className="text-sm text-slate-400 mt-1 font-medium">Historical Employee Placements</p>
+        </div>
       </div>
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium -mt-3">
-          {data.length} {data.length === 1 ? 'record' : 'records'} found
-        </p>
-      )}
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {data.length} {data.length === 1 ? 'record' : 'records'} found
+      </p>
 
       {/* Table — horizontal scroll on mobile */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 {['Emp No', 'Job Code', 'Department', 'Effective Date', 'Salary', 'Status'].map(h => (
                   <th key={h} className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">{h}</th>
                 ))}
@@ -127,14 +128,14 @@ export default function JobHistory() {
               ) : (
                 data.map((r, i) => (
                   <tr key={i} className={`border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 ${r.record_status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                    <td className="px-6 py-4 font-mono text-slate-600 text-xs whitespace-nowrap">{r.empno}</td>
-                    <td className="px-6 py-4 font-mono text-indigo-600 text-xs font-bold whitespace-nowrap">{r.jobcode}</td>
+                    <td className="px-6 py-4 font-mono text-slate-400 text-xs whitespace-nowrap">{r.empno}</td>
+                    <td className="px-6 py-4 font-mono text-slate-400 text-xs whitespace-nowrap">{r.jobcode}</td>
                     <td className="px-6 py-4 text-slate-600 text-sm whitespace-nowrap">{r.deptcode}</td>
                     <td className="px-6 py-4 font-mono text-slate-500 text-xs whitespace-nowrap">{r.effdate}</td>
                     <td className="px-6 py-4 font-mono text-slate-600 text-xs whitespace-nowrap">
                       {r.salary ? `$${Number(r.salary).toLocaleString()}` : '—'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <StatusBadge status={r.record_status || 'ACTIVE'} />
                     </td>
                     {canDelete && (

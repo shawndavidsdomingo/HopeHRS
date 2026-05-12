@@ -33,7 +33,7 @@ const StatusBadge = ({ status }) => {
 };
 
 // ── Skeleton Rows ─────────────────────────────────────────────
-const SkeletonRows = ({ cols, count = 5 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
@@ -53,7 +53,7 @@ const SkeletonRows = ({ cols, count = 5 }) => (
 // ── Empty State ───────────────────────────────────────────────
 const EmptyState = ({ cols }) => (
   <tr>
-    <td colSpan={cols} className="px-6 py-16 text-center">
+    <td colSpan={cols} className="px-6 py-24 text-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-10 h-10 border-2 border-dashed border-slate-200 flex items-center justify-center">
           <span className="text-slate-300 text-lg">∅</span>
@@ -301,10 +301,10 @@ export default function EmployeeDetailPage() {
 
   // M4 PR-02: hasRight('JH_EDIT') and hasRight('JH_DEL') replace rights.JH_EDIT === 1 etc.
   const jhCols = [
-    { header: 'Job Code',  render: (r) => <span className="font-mono text-xs text-indigo-500 font-bold">{r.jobcode}</span> },
-    { header: 'Job Desc',  render: (r) => <span className="text-slate-700">{jobMap[r.jobcode] ?? '—'}</span> },
+    { header: 'Job Code',  render: (r) => <span className="font-mono text-xs text-slate-400">{r.jobcode}</span> },
+    { header: 'Job Desc',  render: (r) => <span className="text-slate-600">{jobMap[r.jobcode] ?? '—'}</span> },
     { header: 'Dept Code', render: (r) => <span className="font-mono text-xs text-slate-400">{r.deptcode}</span> },
-    { header: 'Dept Name', render: (r) => <span className="text-slate-700">{deptMap[r.deptcode] ?? '—'}</span> },
+    { header: 'Dept Name', render: (r) => <span className="text-slate-600">{deptMap[r.deptcode] ?? '—'}</span> },
     { header: 'Eff Date',  render: (r) => <span className="font-mono text-xs text-slate-500">{r.effdate}</span> },
     { header: 'Salary',    render: (r) => <span className="font-mono text-sm font-semibold text-slate-700">${Number(r.salary || 0).toLocaleString()}</span> },
     { header: 'Status',    render: (r) => <StatusBadge status={r.record_status} /> },
@@ -419,14 +419,15 @@ export default function EmployeeDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 overflow-hidden">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+          <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 {jhCols.map((col, idx) => (
                   <th
                     key={idx}
-                    className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] ${col.align === 'right' ? 'text-right' : ''}`}
+                    className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap ${col.align === 'right' ? 'text-right' : ''}`}
                   >
                     {col.header}
                   </th>
@@ -442,7 +443,7 @@ export default function EmployeeDetailPage() {
                     {jhCols.map((col, j) => (
                       <td
                         key={j}
-                        className={`px-6 py-4 text-sm ${col.className || 'text-slate-600'} ${col.align === 'right' ? 'text-right' : ''}`}
+                        className={`px-6 py-4 text-sm whitespace-nowrap ${col.className || 'text-slate-600'} ${col.align === 'right' ? 'text-right' : ''}`}
                       >
                         {col.render ? col.render(row) : row[col.key]}
                       </td>
@@ -454,6 +455,7 @@ export default function EmployeeDetailPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Add Job History Form — M4 PR-02: hasRight('JH_ADD') replaces rights.JH_ADD === 1 */}

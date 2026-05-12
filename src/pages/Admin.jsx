@@ -36,7 +36,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SkeletonRows = ({ cols, count = 6 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
@@ -111,10 +111,10 @@ export default function Admin() {
     setActingOn(null);
   };
 
-return (
-    <div className="max-w-6xl mx-auto">
-      {/* ── Page Header & Toolbar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  return (
+    <div className="space-y-6 flex flex-col h-full">
+      {/* ── Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
           {/* M4: Inform ADMIN-role viewers that actions are restricted */}
@@ -144,18 +144,16 @@ return (
         </div>
       )}
 
-      {!loading && (
-        <p className="text-xs text-slate-400 font-medium mb-3">
-          {users.length} {users.length === 1 ? 'user' : 'users'} found
-        </p>
-      )}
+      <p className="text-xs text-slate-400 font-medium mb-3">
+        {users.length} {users.length === 1 ? 'user' : 'users'} found
+      </p>
 
-      {/* Table — horizontal scroll on mobile */}
-      <div className="bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Table */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+            <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">User ID</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Email</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">User Type</th>
@@ -179,7 +177,7 @@ return (
                       }`}
                     >
                       <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.display_id ?? user.userid.slice(0, 8) + '...'}</td>
-                      <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">{user.email}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap"><UserTypeBadge type={user.user_type} /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={user.record_status} /></td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
