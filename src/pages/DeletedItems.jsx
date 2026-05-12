@@ -1,7 +1,7 @@
 // src/pages/DeletedItems.jsx
 import { useState, useEffect } from 'react';
 import { useRights } from '../contexts/UserRightsContext';
-import { getEmployees, recoverEmployee } from '../lib/Employeeservice';
+import { getEmployees, recoverEmployee } from '../lib/employeeService';
 import { getJobs, recoverJob } from '../lib/jobService';
 import { getDepts, recoverDept } from '../lib/departmentService';
 import { recoverJobHistory } from '../lib/jobHistoryService';
