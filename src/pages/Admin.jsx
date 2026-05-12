@@ -2,6 +2,8 @@
 // Sprint 3 — M2 PR-01: feat/ui-admin-users
 // PR-03: fix/ui-final-polish — mobile responsive table, stacked header
 // M4 PR-01: feat/rights-admin-module — canManage migrated to hasRight('ADM_USER')
+// M4: Action buttons (Activate/Deactivate) gated to SUPERADMIN exclusively.
+//     ADMIN can view the panel via ADM_USER right but cannot perform actions.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -65,15 +67,17 @@ const EmptyState = ({ cols }) => (
 );
 
 export default function Admin() {
-  // M4 PR-01: replaced rights.ADM_USER === 1 with hasRight('ADM_USER')
-  const { currentUser, hasRight } = useRights();
-  const [users, setUsers]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState(null);
-  const [actingOn, setActingOn]   = useState(null);
+  // M4: isSuperAdmin gates action buttons — ADMIN can view but not act
+  const { currentUser, isSuperAdmin } = useRights();
+  const [users, setUsers]             = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [toast, setToast]             = useState(null);
+  const [actingOn, setActingOn]       = useState(null);
 
-  // M4 PR-01: canManage now uses hasRight instead of raw rights map
-  const canManage = hasRight('ADM_USER');
+  // M4: canManage is SUPERADMIN-exclusive.
+  // ADMIN users have ADM_USER right (so they can reach this page) but
+  // cannot activate or deactivate accounts — actions column shows "—" for them.
+  const canManage = isSuperAdmin;
   const cols = 5;
 
   const fetchUsers = async () => {
@@ -113,6 +117,12 @@ export default function Admin() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
+          {/* M4: Inform ADMIN-role viewers that actions are restricted */}
+          {!canManage && (
+            <p className="mt-1 text-xs text-slate-400 font-medium">
+              View-only — activate / deactivate actions require Superadmin access.
+            </p>
+          )}
         </div>
       </div>
 
@@ -151,14 +161,14 @@ export default function Admin() {
                 <SkeletonRows cols={cols} />
               ) : users.length > 0 ? (
                 users.map((user) => {
-                  const isSuperAdmin = user.user_type === 'SUPERADMIN';
-                  const isActive     = user.record_status === 'ACTIVE';
-                  const isActing     = actingOn === user.userid;
+                  const isSuperAdminRow = user.user_type === 'SUPERADMIN';
+                  const isActive        = user.record_status === 'ACTIVE';
+                  const isActing        = actingOn === user.userid;
                   return (
                     <tr
                       key={user.userid}
                       className={`border-b border-slate-100 last:border-0 transition-colors duration-75 ${
-                        isSuperAdmin ? 'bg-slate-50/60 opacity-70' : 'hover:bg-indigo-50/40'
+                        isSuperAdminRow ? 'bg-slate-50/60 opacity-70' : 'hover:bg-indigo-50/40'
                       }`}
                     >
                       <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.display_id ?? user.userid.slice(0, 8) + '...'}</td>
@@ -166,11 +176,13 @@ export default function Admin() {
                       <td className="px-6 py-4 whitespace-nowrap"><UserTypeBadge type={user.user_type} /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={user.record_status} /></td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {isSuperAdmin ? (
+                        {isSuperAdminRow ? (
+                          // SUPERADMIN rows are always protected — no one can modify them
                           <span title="SUPERADMIN accounts cannot be modified" className="text-[10px] text-slate-300 font-bold uppercase tracking-widest cursor-not-allowed select-none">
                             Protected
                           </span>
                         ) : canManage ? (
+                          // SUPERADMIN viewer — full action access
                           <div className="flex items-center justify-end gap-2">
                             {!isActive && (
                               <button
@@ -192,6 +204,7 @@ export default function Admin() {
                             )}
                           </div>
                         ) : (
+                          // M4: ADMIN viewer — read-only, no action buttons rendered
                           <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">—</span>
                         )}
                       </td>

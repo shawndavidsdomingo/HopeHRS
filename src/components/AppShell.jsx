@@ -1,7 +1,7 @@
 // src/components/AppShell.jsx
 // Sprint 3 — PR-03: fix/ui-final-polish
 // M4 PR-01: feat/rights-admin-module — Admin sidebar link gated by hasRight('ADM_USER')
-// Previously gated by isAdminOrAbove — now correctly uses the ADM_USER right
+// M4: Admin link positioned below Deleted Items per sidebar order requirement
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
@@ -13,7 +13,6 @@ import { useRights } from '../contexts/UserRightsContext';
 export default function AppShell() {
   const navigate  = useNavigate();
   const location  = useLocation();
-  // M4 PR-01: added hasRight to destructure for ADM_USER gating
   const { currentUser, isAdminOrAbove, hasRight } = useRights();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -30,17 +29,21 @@ export default function AppShell() {
   ];
 
   const menuItems = [...baseMenuItems];
+
   if (isAdminOrAbove) {
-    menuItems.push({ path: '/deleted-items',            label: 'Deleted Items',    icon: <Trash2    size={15} /> });
+    // M4: Deleted Items comes first, then Admin (if ADM_USER right), then reports
+    menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
+  }
+
+  // M4 PR-01: Admin link gated by ADM_USER right, positioned directly below Deleted Items
+  if (hasRight('ADM_USER')) {
+    menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
+  }
+
+  if (isAdminOrAbove) {
     menuItems.push({ path: '/reports/headcount',        label: 'Headcount Report', icon: <BarChart2 size={15} /> });
     menuItems.push({ path: '/reports/salary',           label: 'Salary Report',    icon: <BarChart2 size={15} /> });
     menuItems.push({ path: '/reports/employee-history', label: 'History Report',   icon: <BarChart2 size={15} /> });
-  }
-
-  // M4 PR-01: Admin link gated by ADM_USER right, not isAdminOrAbove
-  // Only users with ADM_USER === 1 in user_module_rights see this link
-  if (hasRight('ADM_USER')) {
-    menuItems.push({ path: '/admin', label: 'Admin', icon: <Shield size={15} /> });
   }
 
   const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
