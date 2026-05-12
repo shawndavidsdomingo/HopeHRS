@@ -4,7 +4,7 @@ import { useRights } from '../contexts/UserRightsContext';
 import { getEmployees, recoverEmployee } from '../lib/Employeeservice';
 import { getJobs, recoverJob } from '../lib/jobService';
 import { getDepts, recoverDept } from '../lib/departmentService';
-import { recoverJobHistory } from '../lib/Jobhistoryservice';
+import { recoverJobHistory } from '../lib/jobHistoryService';
 import { supabase } from '../lib/supabaseClient';
 
 export default function DeletedItems() {
