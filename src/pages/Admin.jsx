@@ -111,9 +111,9 @@ export default function Admin() {
     setActingOn(null);
   };
 
-  return (
+return (
     <div className="max-w-6xl mx-auto">
-      {/* ── Page Header ── */}
+      {/* ── Page Header & Toolbar ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
@@ -123,6 +123,13 @@ export default function Admin() {
               View-only — activate / deactivate actions require Superadmin access.
             </p>
           )}
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          {/* Note: add your existing Search Input here if you have one */}
+          <div className="relative w-full sm:w-64">
+             {/* ... search input code ... */}
+          </div>
         </div>
       </div>
 
@@ -143,7 +150,7 @@ export default function Admin() {
         </p>
       )}
 
-      {/* Table */}
+      {/* Table — horizontal scroll on mobile */}
       <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">

@@ -111,8 +111,11 @@ export default function AppShell() {
 
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+        {/* Topbar */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0">
           <div className="flex items-center gap-3">
+            {/* Hamburger — mobile only */}
             <button
               onClick={() => setSidebarOpen(true)}
               className="md:hidden text-slate-500 hover:text-slate-800 cursor-pointer"
