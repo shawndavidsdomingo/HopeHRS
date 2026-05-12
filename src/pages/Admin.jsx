@@ -1,7 +1,6 @@
 // src/pages/Admin.jsx
 // Sprint 3 — M2 PR-01: feat/ui-admin-users
 // PR-03: fix/ui-final-polish — mobile responsive table, stacked header
-// M4 PR-01: feat/rights-admin-module — canManage migrated to hasRight('ADM_USER')
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -65,15 +64,13 @@ const EmptyState = ({ cols }) => (
 );
 
 export default function Admin() {
-  // M4 PR-01: replaced rights.ADM_USER === 1 with hasRight('ADM_USER')
-  const { currentUser, hasRight } = useRights();
-  const [users, setUsers]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState(null);
-  const [actingOn, setActingOn]   = useState(null);
+  const { currentUser, rights } = useRights();
+  const [users, setUsers]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [toast, setToast]       = useState(null);
+  const [actingOn, setActingOn] = useState(null);
 
-  // M4 PR-01: canManage now uses hasRight instead of raw rights map
-  const canManage = hasRight('ADM_USER');
+  const canManage = rights.ADM_USER === 1;
   const cols = 5;
 
   const fetchUsers = async () => {
@@ -113,6 +110,13 @@ export default function Admin() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-5 border-b border-slate-200">
         <div>
           <h1 className="uppercase text-2xl font-bold text-slate-900 tracking-tight">Admin Area</h1>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          {/* Note: add your existing Search Input here if you have one */}
+          <div className="relative w-full sm:w-64">
+             {/* ... search input code ... */}
+          </div>
         </div>
       </div>
 
