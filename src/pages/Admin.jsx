@@ -4,6 +4,7 @@
 // M4 PR-01: feat/rights-admin-module — canManage migrated to hasRight('ADM_USER')
 // M4: Action buttons (Activate/Deactivate) gated to SUPERADMIN exclusively.
 //     ADMIN can view the panel via ADM_USER right but cannot perform actions.
+//W5-6 M4 PR-02: Superadmin cannot modify other Superadmin accounts — "Protected" label shown, no action buttons rendered.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
