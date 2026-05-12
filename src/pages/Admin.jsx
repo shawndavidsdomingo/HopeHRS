@@ -1,6 +1,8 @@
 // src/pages/Admin.jsx
 // Sprint 3 — M2 PR-01: feat/ui-admin-users
 // PR-03: fix/ui-final-polish — mobile responsive table, stacked header
+// M4 PR-01: feat/rights-admin-module — canManage gated by isSuperAdmin
+// M4 PR-02: feat/rights-superadmin-guard — SUPERADMIN rows: buttons disabled + tooltip
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
@@ -33,6 +35,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+
 const SkeletonRows = ({ cols, count = 6 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
@@ -64,13 +67,14 @@ const EmptyState = ({ cols }) => (
 );
 
 export default function Admin() {
-  const { currentUser, rights } = useRights();
-  const [users, setUsers]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [toast, setToast]       = useState(null);
-  const [actingOn, setActingOn] = useState(null);
+  const { currentUser, isSuperAdmin } = useRights();
+  const [users, setUsers]             = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [toast, setToast]             = useState(null);
+  const [actingOn, setActingOn]       = useState(null);
 
-  const canManage = rights.ADM_USER === 1;
+  // M4 PR-01: only SUPERADMIN can perform activate/deactivate actions
+  const canManage = isSuperAdmin;
   const cols = 5;
 
   const fetchUsers = async () => {
@@ -104,19 +108,18 @@ export default function Admin() {
     setActingOn(null);
   };
 
-return (
+  return (
     <div className="max-w-6xl mx-auto">
-      {/* ── Page Header & Toolbar ── */}
+      {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Area</h1>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-          {/* Note: add your existing Search Input here if you have one */}
-          <div className="relative w-full sm:w-64">
-             {/* ... search input code ... */}
-          </div>
+          {/* M4 PR-01: view-only notice for ADMIN users */}
+          {!canManage && (
+            <p className="mt-1 text-xs text-slate-400 font-medium">
+              View only — activate/deactivate requires SUPERADMIN access.
+            </p>
+          )}
         </div>
       </div>
 
@@ -137,7 +140,7 @@ return (
         </p>
       )}
 
-      {/* Table — horizontal scroll on mobile */}
+      {/* Table */}
       <div className="bg-white border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -155,26 +158,37 @@ return (
                 <SkeletonRows cols={cols} />
               ) : users.length > 0 ? (
                 users.map((user) => {
-                  const isSuperAdmin = user.user_type === 'SUPERADMIN';
-                  const isActive     = user.record_status === 'ACTIVE';
-                  const isActing     = actingOn === user.userid;
+                  // M4 PR-02: SUPERADMIN guard — checked per-row, regardless of who is logged in
+                  const isSuper  = user.user_type === 'SUPERADMIN';
+                  const isActive = user.record_status === 'ACTIVE';
+                  const isActing = actingOn === user.userid;
+
                   return (
                     <tr
                       key={user.userid}
                       className={`border-b border-slate-100 last:border-0 transition-colors duration-75 ${
-                        isSuperAdmin ? 'bg-slate-50/60 opacity-70' : 'hover:bg-indigo-50/40'
+                        isSuper ? 'bg-slate-50/60' : 'hover:bg-indigo-50/40'
                       }`}
                     >
-                      <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.display_id ?? user.userid.slice(0, 8) + '...'}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                        {user.display_id ?? user.userid.slice(0, 8) + '...'}
+                      </td>
                       <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap"><UserTypeBadge type={user.user_type} /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={user.record_status} /></td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {isSuperAdmin ? (
-                          <span title="SUPERADMIN accounts cannot be modified" className="text-[10px] text-slate-300 font-bold uppercase tracking-widest cursor-not-allowed select-none">
+
+                                        {/* M4 PR-02: SUPERADMIN rows — always protected, regardless of who is logged in */}
+                        {isSuper ? (
+                          <span
+                            title="SUPERADMIN accounts cannot be modified"
+                            className="text-[10px] text-slate-300 font-bold uppercase tracking-widest cursor-not-allowed select-none"
+                          >
                             Protected
                           </span>
+
                         ) : canManage ? (
+                          /* SUPERADMIN logged in — active action buttons */
                           <div className="flex items-center justify-end gap-2">
                             {!isActive && (
                               <button
@@ -195,9 +209,12 @@ return (
                               </button>
                             )}
                           </div>
+
                         ) : (
+                          /* ADMIN logged in — no action access */
                           <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">—</span>
                         )}
+
                       </td>
                     </tr>
                   );
