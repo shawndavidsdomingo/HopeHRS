@@ -9,6 +9,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield, BarChart2, Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
+import UserTypeBadge from './UserTypeBadge';
 
 export default function AppShell() {
   const navigate  = useNavigate();
@@ -128,8 +129,21 @@ export default function AppShell() {
               <span className="text-slate-700 font-semibold">{currentPage}</span>
             </div>
           </div>
-          <div className="w-7 h-7 bg-slate-900 flex items-center justify-center text-white rounded-full text-xs font-bold uppercase">
-            {currentUser?.email?.charAt(0) || 'U'}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 max-w-[min(100%,11rem)] sm:max-w-xs md:max-w-sm shrink">
+            <div className="min-w-0 flex flex-col gap-0.5 items-end text-right">
+              <span
+                className="text-xs text-slate-600 font-small truncate w-full"
+                title={currentUser?.email || undefined}
+              >
+                {currentUser?.email || '—'}
+              </span>
+              {currentUser?.user_type ? (
+                <UserTypeBadge type={currentUser.user_type} />
+              ) : null}
+            </div>
+            <div className="w-9 h-9 shrink-0 bg-slate-900 flex items-center justify-center text-white rounded-full text-xs font-bold uppercase">
+              {currentUser?.email?.charAt(0) || 'U'}
+            </div>
           </div>
         </header>
 
