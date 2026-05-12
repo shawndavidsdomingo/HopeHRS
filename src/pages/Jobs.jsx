@@ -12,8 +12,8 @@ import AddJobModal from '../components/AddJobModal';
 import EditJobModal from '../components/EditJobModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
-// ── Skeleton Rows ─────────────────────────────────────────────
-const SkeletonRows = ({ cols, count = 6 }) => (
+// ── Skeleton Rows (match Employees.jsx) ──
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
@@ -45,20 +45,40 @@ const EmptyState = ({ cols }) => (
 );
 
 function Th({ children, align = 'left' }) {
-  return <th className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap-${align}`}>{children}</th>;
+  return (
+    <th
+      className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap ${
+        align === 'right' ? 'text-right' : ''
+      }`}
+    >
+      {children}
+    </th>
+  );
 }
 
 function Td({ children, align = 'left' }) {
-  return <td className={`px-6 py-4 text-sm text-slate-700 whitespace-nowrap text-${align}`}>{children}</td>;
+  return (
+    <td
+      className={`px-6 py-4 text-sm whitespace-nowrap text-slate-600 ${align === 'right' ? 'text-right' : ''}`}
+    >
+      {children}
+    </td>
+  );
 }
 
 function StatusBadge({ status }) {
-  const active = status === 'ACTIVE';
+  const map = {
+    ACTIVE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    INACTIVE: 'bg-slate-100 text-slate-400 border border-slate-200',
+  };
+  const s = status || 'ACTIVE';
   return (
-    <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded ${
-      active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'
-    }`}>
-      {status || 'ACTIVE'}
+    <span
+      className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${
+        map[s] ?? map.INACTIVE
+      }`}
+    >
+      {s}
     </span>
   );
 }
@@ -123,25 +143,30 @@ export default function Jobs() {
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
-              <tr className="bg-slate-50 border-b border-slate-200">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 <Th>Job Code</Th>
                 <Th>Description</Th>
                 <Th>Status</Th>
                 {hasActions && <Th align="right">Actions</Th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {loading ? (
                 <SkeletonRows cols={colCount} />
               ) : jobs.length > 0 ? (
                 jobs.map((job) => (
-                  <tr key={job.jobcode} className={`hover:bg-slate-50/50 transition-colors ${job.record_status === 'INACTIVE' ? 'opacity-50' : ''}`}>
+                  <tr
+                    key={job.jobcode}
+                    className={`border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 ${
+                      job.record_status === 'INACTIVE' ? 'opacity-50' : ''
+                    }`}
+                  >
                     <Td>
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center shrink-0">
                           <Briefcase size={12} className="text-indigo-600" />
                         </div>
-                        <span className="font-mono text-indigo-600 font-bold">{job.jobcode}</span>
+                        <span className="font-mono text-xs font-semibold text-slate-700">{job.jobcode}</span>
                       </div>
                     </Td>
                     <Td>{job.jobdesc}</Td>

@@ -111,7 +111,7 @@ export default function JobHistory() {
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
-              <tr className="bg-slate-50 border-b border-slate-200">
+              <tr className="border-b border-slate-100 bg-slate-50">
                 {['Emp No', 'Job Code', 'Department', 'Effective Date', 'Salary', 'Status'].map(h => (
                   <th key={h} className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">{h}</th>
                 ))}
@@ -128,14 +128,14 @@ export default function JobHistory() {
               ) : (
                 data.map((r, i) => (
                   <tr key={i} className={`border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 ${r.record_status === 'INACTIVE' ? 'opacity-50' : ''}`}>
-                    <td className="px-6 py-4 font-mono text-slate-600 text-xs whitespace-nowrap">{r.empno}</td>
-                    <td className="px-6 py-4 font-mono text-indigo-600 text-xs font-bold whitespace-nowrap">{r.jobcode}</td>
+                    <td className="px-6 py-4 font-mono text-slate-400 text-xs whitespace-nowrap">{r.empno}</td>
+                    <td className="px-6 py-4 font-mono text-slate-400 text-xs whitespace-nowrap">{r.jobcode}</td>
                     <td className="px-6 py-4 text-slate-600 text-sm whitespace-nowrap">{r.deptcode}</td>
                     <td className="px-6 py-4 font-mono text-slate-500 text-xs whitespace-nowrap">{r.effdate}</td>
                     <td className="px-6 py-4 font-mono text-slate-600 text-xs whitespace-nowrap">
                       {r.salary ? `$${Number(r.salary).toLocaleString()}` : '—'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <StatusBadge status={r.record_status || 'ACTIVE'} />
                     </td>
                     {canDelete && (

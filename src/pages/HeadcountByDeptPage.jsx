@@ -6,13 +6,16 @@
 import { useEffect, useState } from 'react';
 import { getHeadcountByDept } from '../lib/reportsService';
 
-const SkeletonRows = ({ cols, count = 6 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
         {Array.from({ length: cols }).map((_, j) => (
           <td key={j} className="px-6 py-4">
-            <div className="h-3 bg-slate-100 animate-pulse" style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }} />
+            <div
+              className="h-3 bg-slate-100 animate-pulse"
+              style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
+            />
           </td>
         ))}
       </tr>
@@ -96,8 +99,8 @@ export default function HeadcountByDeptPage() {
 
       {!loading && data.length > 0 && <HeadcountBarChart data={data} />}
 
-      <div className="bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
+        <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
               <tr className="border-b border-slate-100 bg-slate-50">
@@ -114,8 +117,8 @@ export default function HeadcountByDeptPage() {
                   <tr key={row.deptcode} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
                     <td className="px-6 py-4 font-mono text-xs text-slate-400 whitespace-nowrap">{row.deptcode}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{row.deptname}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="font-mono text-sm font-bold text-indigo-600">{row.activeheadcount}</span>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <span className="font-mono text-sm font-bold text-slate-800">{row.activeheadcount}</span>
                     </td>
                   </tr>
                 ))

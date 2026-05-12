@@ -6,13 +6,16 @@
 import { useEffect, useState } from 'react';
 import { getSalarySummaryByJob } from '../lib/reportsService';
 
-const SkeletonRows = ({ cols, count = 6 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
         {Array.from({ length: cols }).map((_, j) => (
           <td key={j} className="px-6 py-4">
-            <div className="h-3 bg-slate-100 animate-pulse" style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }} />
+            <div
+              className="h-3 bg-slate-100 animate-pulse"
+              style={{ width: `${50 + ((i * j + j) % 4) * 12}%`, animationDelay: `${i * 60}ms` }}
+            />
           </td>
         ))}
       </tr>
@@ -84,13 +87,13 @@ export default function SalaryReportPage() {
               ) : data.length > 0 ? (
                 data.map((row) => (
                   <tr key={row.jobcode} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
-                    <td className="px-6 py-4 font-mono text-xs text-indigo-500 font-bold whitespace-nowrap">{row.jobcode}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-slate-400 whitespace-nowrap">{row.jobcode}</td>
                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{row.jobdesc}</td>
                     <td className="px-6 py-4 text-right font-mono text-xs text-slate-500 whitespace-nowrap">{row.assignments}</td>
                     <td className="px-6 py-4 text-right font-mono text-sm text-slate-600 whitespace-nowrap">{fmt(row.minsalary)}</td>
                     <td className="px-6 py-4 text-right font-mono text-sm text-slate-600 whitespace-nowrap">{fmt(row.maxsalary)}</td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <span className="font-mono text-sm font-bold text-indigo-600">{fmt(row.avgsalary)}</span>
+                      <span className="font-mono text-sm font-bold text-slate-800">{fmt(row.avgsalary)}</span>
                     </td>
                   </tr>
                 ))

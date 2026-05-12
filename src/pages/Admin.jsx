@@ -33,7 +33,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SkeletonRows = ({ cols, count = 6 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
@@ -164,7 +164,7 @@ export default function Admin() {
                       }`}
                     >
                       <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.display_id ?? user.userid.slice(0, 8) + '...'}</td>
-                      <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">{user.email}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap"><UserTypeBadge type={user.user_type} /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={user.record_status} /></td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">

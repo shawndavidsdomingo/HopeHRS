@@ -27,7 +27,7 @@ const StatusBadge = ({ status }) => {
 };
 
 // ── Skeleton Rows ─────────────────────────────────────────────
-const SkeletonRows = ({ cols, count = 5 }) => (
+const SkeletonRows = ({ cols, count = 7 }) => (
   <>
     {Array.from({ length: count }).map((_, i) => (
       <tr key={i} className="border-b border-slate-100">
@@ -47,7 +47,7 @@ const SkeletonRows = ({ cols, count = 5 }) => (
 // ── Empty State ───────────────────────────────────────────────
 const EmptyState = ({ cols, label = 'No records found' }) => (
   <tr>
-    <td colSpan={cols} className="px-6 py-16 text-center">
+    <td colSpan={cols} className="px-6 py-24 text-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-10 h-10 border-2 border-dashed border-slate-200 flex items-center justify-center">
           <span className="text-slate-300 text-lg">∅</span>
@@ -208,12 +208,12 @@ export default function EmployeeHistoryReportPage() {
           <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex-1 overflow-hidden">
             <div className="overflow-x-auto h-full">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Emp No</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Last Name</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">First Name</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Status</th>
+                <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Emp No</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Last Name</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">First Name</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,10 +226,10 @@ export default function EmployeeHistoryReportPage() {
                         onClick={() => handleSelect(emp)}
                         className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75 cursor-pointer"
                       >
-                        <td className="px-6 py-4 font-mono text-xs text-slate-400">{emp.empno}</td>
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-800">{emp.lastname}</td>
-                        <td className="px-6 py-4 text-sm text-slate-600">{emp.firstname}</td>
-                        <td className="px-6 py-4"><StatusBadge status={emp.record_status} /></td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-400 whitespace-nowrap">{emp.empno}</td>
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-800 whitespace-nowrap">{emp.lastname}</td>
+                        <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{emp.firstname}</td>
+                        <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={emp.record_status} /></td>
                       </tr>
                     ))
                   ) : (
@@ -284,15 +284,16 @@ export default function EmployeeHistoryReportPage() {
               {history.length} {history.length === 1 ? 'record' : 'records'} found
             </p>
           )}
-          <div className="bg-white border border-slate-200 overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+            <div className="overflow-x-auto h-full">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0]">
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Job Code</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Job Description</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Department</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right">Salary</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em]">Eff Date</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Job Code</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Job Description</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Department</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] text-right whitespace-nowrap">Salary</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] whitespace-nowrap">Eff Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -301,11 +302,11 @@ export default function EmployeeHistoryReportPage() {
                 ) : history.length > 0 ? (
                   history.map((row, i) => (
                     <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/40 transition-colors duration-75">
-                      <td className="px-6 py-4 font-mono text-xs text-indigo-500 font-bold">{row.jobcode}</td>
-                      <td className="px-6 py-4 text-sm text-slate-700">{row.job?.jobdesc ?? '—'}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{row.department?.deptname ?? '—'}</td>
-                      <td className="px-6 py-4 text-right font-mono text-sm font-semibold text-slate-700">{fmt(row.salary)}</td>
-                      <td className="px-6 py-4 font-mono text-xs text-slate-500">{row.effdate}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-400 whitespace-nowrap">{row.jobcode}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{row.job?.jobdesc ?? '—'}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{row.department?.deptname ?? '—'}</td>
+                      <td className="px-6 py-4 text-right font-mono text-sm font-semibold text-slate-700 whitespace-nowrap">{fmt(row.salary)}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{row.effdate}</td>
                     </tr>
                   ))
                 ) : (
@@ -313,6 +314,7 @@ export default function EmployeeHistoryReportPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}
