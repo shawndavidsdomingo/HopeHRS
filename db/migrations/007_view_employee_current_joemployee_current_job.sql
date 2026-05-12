@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/007_view_employee_current_job.sql
+-- db/migrations/008_view_employee_current_job.sql
 -- Sprint 2 — M3 PR-04: db/view-employee-current-job
 -- ============================================================
 -- Creates the employee_current_job view.

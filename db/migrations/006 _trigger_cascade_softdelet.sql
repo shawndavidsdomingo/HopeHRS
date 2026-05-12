@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/006_trigger_cascade_softdelete.sql
+-- db/migrations/007_trigger_cascade_softdelete.sql
 -- Sprint 2 — M3 PR-03: db/trigger-cascade-softdelete
 -- ============================================================
 -- Cascade trigger: when an employee's record_status changes,

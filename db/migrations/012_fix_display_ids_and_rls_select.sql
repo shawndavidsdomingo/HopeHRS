@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/012_fix_display_ids_and_rls_select.sql
+-- db/migrations/013_fix_display_ids_and_rls_select.sql
 -- fix/admin-display-id-rls-login
 -- ============================================================
 -- Two fixes:

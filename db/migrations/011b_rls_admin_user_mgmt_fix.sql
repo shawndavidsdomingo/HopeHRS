@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/011b_rls_admin_user_mgmt_fix.sql
+-- db/migrations/012b_rls_admin_user_mgmt_fix.sql
 -- Sprint 3 — M3 PR-02: db/rls-admin-user-mgmt (recursion fix)
 -- ============================================================
 -- FIX: hr_user RLS policies caused infinite recursion because

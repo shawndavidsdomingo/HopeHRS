@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/011_rls_admin_user_mgmt.sql
+-- db/migrations/012_rls_admin_user_mgmt.sql
 -- Sprint 3 — M3 PR-02: db/rls-admin-user-mgmt
 -- ============================================================
 -- Two deliverables in this file:
