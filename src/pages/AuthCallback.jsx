@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabaseClient';
 // Google Cloud Console → OAuth 2.0 → Authorized Redirect URIs:
 //   • http://localhost:5173/auth/callback
 //   • https://<project>.supabase.co/auth/v1/callback
+//M4 PR-03: Done
 
 export default function AuthCallback() {
   const navigate = useNavigate();

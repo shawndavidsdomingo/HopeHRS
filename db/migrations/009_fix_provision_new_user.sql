@@ -1,5 +1,5 @@
 -- ============================================================
--- db/migrations/009_fix_provision_new_user.sql
+-- db/migrations/010_fix_provision_new_user.sql
 -- Hotfix: fix/sync-seeded-uid-on-login
 -- ============================================================
 -- Fixes multiple cascading issues that blocked new Google OAuth
@@ -253,7 +253,7 @@ WHERE userid = (
 ORDER BY rightcode;
 -- Expected: 17 rows, all right_value = 1
 */-- ============================================================
--- db/migrations/009_fix_provision_new_user.sql
+-- db/migrations/010_fix_provision_new_user.sql
 -- Hotfix: fix/sync-seeded-uid-on-login
 -- ============================================================
 -- Fixes multiple cascading issues that blocked new Google OAuth

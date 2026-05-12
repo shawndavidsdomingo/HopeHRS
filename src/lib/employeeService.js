@@ -1,21 +1,12 @@
 // src/lib/employeeService.js
 // Sprint 2 — M1 PR-01: feat/employee-api
-// ─────────────────────────────────────────────────────────────────────────────
-// Schema confirmed from 001_initial_schema.sql:
-//   Table : employee
-//   PK    : empno (VARCHAR 5)
-//   Cols  : lastname, firstname, gender, birthdate, hiredate, sepdate (Postgres
-//           lowercases "sepDate"), record_status, stamp
-//
-// Auth pattern confirmed from App.jsx:
-//   - hr_user is queried by session.user.email (not userId)
-//   - stamp uses email as the actor identifier
+// Sprint 3 fix: getEmployees now queries employee_current_job view so
+//   the Current Job (jobdesc) column populates correctly in EmployeeListPage.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { supabase } from './supabaseClient';
 
 // ── Stamp helper ──────────────────────────────────────────────────────────────
-// "ACTION | email | ISO-timestamp"  — trimmed to 60 chars (column max)
 function makeStamp(action, userEmail) {
   return `${action} | ${userEmail} | ${new Date().toISOString()}`.slice(0, 60);
 }
@@ -23,41 +14,68 @@ function makeStamp(action, userEmail) {
 // ─────────────────────────────────────────────────────────────────────────────
 // READ
 // getEmployees(userType)
-//   USER              → ACTIVE rows only   (mirrors RLS policy added by M3)
-//   ADMIN/SUPERADMIN  → all rows (ACTIVE + INACTIVE)
+//
+// FIX: Previously queried the employee table directly which has no jobdesc
+// column — this caused the Current Job column to always show blank.
+//
+// Now:
+//   USER              → employee_current_job view (ACTIVE employees + jobdesc)
+//   ADMIN/SUPERADMIN  → employee table joined with employee_current_job so
+//                       INACTIVE employees still appear, with jobdesc resolved
+//                       where available
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getEmployees(userType) {
-  let query = supabase
-    .from('employee')
-    .select(
-      'empno, lastname, firstname, gender, birthdate, hiredate, sepdate, record_status, stamp'
-    )
-    .order('empno');
-
   if (userType === 'USER') {
-    query = query.eq('record_status', 'ACTIVE');
+    // View returns ACTIVE employees only with resolved jobdesc and deptname
+    const { data, error } = await supabase
+      .from('employee_current_job')
+      .select('empno, lastname, firstname, gender, hiredate, sepdate, emp_status, emp_stamp, jobdesc, deptname')
+      .order('empno');
+
+    if (error) console.error('[getEmployees USER]', error.message);
+
+    // Remap view column names to match what Employees.jsx expects
+    const mapped = (data ?? []).map(row => ({
+      ...row,
+      record_status: row.emp_status,
+      stamp: row.emp_stamp,
+    }));
+
+    return { data: mapped, error };
   }
 
-  const { data, error } = await query;
-  if (error) console.error('[getEmployees]', error.message);
-  return { data: data ?? [], error };
+  // ADMIN / SUPERADMIN — query employee table for all rows including INACTIVE
+  // Left join with employee_current_job to resolve jobdesc where available
+  const { data, error } = await supabase
+    .from('employee')
+    .select('empno, lastname, firstname, gender, birthdate, hiredate, sepdate, record_status, stamp')
+    .order('empno');
+
+  if (error) console.error('[getEmployees ADMIN]', error.message);
+
+  if (!data) return { data: [], error };
+
+  // For each employee, fetch their current job from the view
+  // We do a single view query and merge by empno to avoid N+1
+  const { data: viewData } = await supabase
+    .from('employee_current_job')
+    .select('empno, jobdesc, deptname');
+
+  const jobMap = {};
+  (viewData ?? []).forEach(row => { jobMap[row.empno] = row; });
+
+  const merged = data.map(emp => ({
+    ...emp,
+    jobdesc:  jobMap[emp.empno]?.jobdesc  ?? null,
+    deptname: jobMap[emp.empno]?.deptname ?? null,
+  }));
+
+  return { data: merged, error };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CREATE
 // addEmployee(employeeData, userEmail)
-//   Gated by EMP_ADD right — only call when rights.EMP_ADD === 1
-//
-//   employeeData shape:
-//   {
-//     empno:     string        — '00032' (5-char zero-padded)
-//     lastname:  string
-//     firstname: string
-//     gender:    'M' | 'F'
-//     birthdate: string        — 'YYYY-MM-DD'
-//     hiredate:  string        — 'YYYY-MM-DD'
-//     sepdate:   string | null — null if still employed
-//   }
 // ─────────────────────────────────────────────────────────────────────────────
 export async function addEmployee(employeeData, userEmail) {
   const stamp = makeStamp('ADDED', userEmail);
@@ -85,23 +103,9 @@ export async function addEmployee(employeeData, userEmail) {
 // ─────────────────────────────────────────────────────────────────────────────
 // UPDATE
 // updateEmployee(empno, updates, userEmail)
-//   Gated by EMP_EDIT right — only call when rights.EMP_EDIT === 1
-//   NEVER touches record_status — use softDeleteEmployee/recoverEmployee for that
-//
-//   updates shape (only changed fields needed):
-//   {
-//     lastname?:  string
-//     firstname?: string
-//     gender?:    'M' | 'F'
-//     birthdate?: string
-//     hiredate?:  string
-//     sepdate?:   string | null
-//   }
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateEmployee(empno, updates, userEmail) {
   const stamp = makeStamp('UPDATED', userEmail);
-
-  // Defensive: strip record_status if accidentally passed — never edit via this fn
   const { record_status: _ignored, ...safeUpdates } = updates;
 
   const { data, error } = await supabase
@@ -116,14 +120,9 @@ export async function updateEmployee(empno, updates, userEmail) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SOFT DELETE   ← DB trigger cascades to jobHistory automatically
+// SOFT DELETE
 // softDeleteEmployee(empno, userEmail)
-//   Gated by EMP_DEL right — SUPERADMIN only per rights matrix
-//
-//   Sets employee record_status = 'INACTIVE'
-//   DB trigger on_employee_status_change → cascade_employee_soft_delete()
-//   automatically sets all jobHistory rows for this empno to INACTIVE.
-//   No manual jobHistory update needed.
+//   DB trigger cascades to jobHistory automatically
 // ─────────────────────────────────────────────────────────────────────────────
 export async function softDeleteEmployee(empno, userEmail) {
   const stamp = makeStamp('DEACTIVATED', userEmail);
@@ -138,14 +137,9 @@ export async function softDeleteEmployee(empno, userEmail) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RECOVER   ← DB trigger cascade-restores jobHistory automatically
+// RECOVER
 // recoverEmployee(empno, userEmail)
-//   Accessible to ADMIN and SUPERADMIN only (RLS + /deleted-items route guard)
-//
-//   Sets employee record_status = 'ACTIVE'
-//   DB trigger on_employee_status_change → cascade_employee_soft_delete()
-//   automatically restores all jobHistory rows for this empno back to ACTIVE.
-//   No manual jobHistory update needed.
+//   DB trigger cascade-restores jobHistory automatically
 // ─────────────────────────────────────────────────────────────────────────────
 export async function recoverEmployee(empno, userEmail) {
   const stamp = makeStamp('REACTIVATED', userEmail);

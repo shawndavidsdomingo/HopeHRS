@@ -15,6 +15,9 @@ import JobHistory from './pages/JobHistory';
 import DeletedItems from './pages/DeletedItems';
 import EmployeeDetailPage from './pages/EmployeeDetailPage'
 import Admin from './pages/Admin';
+import HeadcountByDeptPage from './pages/HeadcountByDeptPage';
+import SalaryReportPage from './pages/SalaryReportPage';
+import EmployeeHistoryReportPage from './pages/EmployeeHistoryReportPage';
 
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
@@ -167,6 +170,9 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // Ignore background refreshes
       if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') return;
+      // On SIGNED_IN always clear the cache so re-login after activation
+      // always re-queries hr_user instead of using the stale cached state
+      if (event === 'SIGNED_IN') activeUserId.current = null;
       checkLoginGuard(session);
     });
 
@@ -256,6 +262,9 @@ function App() {
             {/* PR-04: adminOnly route guard */}
             <Route path="/deleted-items" element={<ProtectedRoute adminOnly><DeletedItems /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+            <Route path="/reports/headcount" element={<ProtectedRoute adminOnly><HeadcountByDeptPage /></ProtectedRoute>} />
+            <Route path="/reports/salary" element={<ProtectedRoute adminOnly><SalaryReportPage /></ProtectedRoute>} />
+            <Route path="/reports/employee-history" element={<ProtectedRoute adminOnly><EmployeeHistoryReportPage /></ProtectedRoute>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
