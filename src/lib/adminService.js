@@ -40,12 +40,19 @@ function makeStamp(action, userEmail) {
 export async function getUsers() {
   const { data, error } = await supabase
     .from('hr_user')
-    .select('userid, email, user_type, record_status, stamp')
-    .order('user_type')
+    .select('userid, display_id, email, user_type, record_status, stamp')
     .order('email');
 
   if (error) console.error('[getUsers]', error.message);
-  return { data: data ?? [], error };
+
+  // Sort by privilege level: SUPERADMIN → ADMIN → USER
+  const order = { SUPERADMIN: 1, ADMIN: 2, USER: 3 };
+  const sorted = (data ?? []).sort((a, b) =>
+    (order[a.user_type] ?? 4) - (order[b.user_type] ?? 4) ||
+    a.email.localeCompare(b.email)
+  );
+
+  return { data: sorted, error };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
