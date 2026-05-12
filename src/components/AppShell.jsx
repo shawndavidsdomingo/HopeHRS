@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield } from 'lucide-react';
+import { Users, Briefcase, Building, History, LogOut, ChevronRight, Trash2, Shield, BarChart2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRights } from '../contexts/UserRightsContext';
 
@@ -36,8 +36,11 @@ export default function AppShell() {
   // Route guard in ProtectedRoute.jsx still blocks USER even if they type the URL directly
   const menuItems = [...baseMenuItems];
   if (isAdminOrAbove) {
-    menuItems.push({ path: '/deleted-items', label: 'Deleted Items', icon: <Trash2 size={15} /> });
-    menuItems.push({ path: '/admin',         label: 'Admin',         icon: <Shield size={15} /> });
+    menuItems.push({ path: '/deleted-items',              label: 'Deleted Items',    icon: <Trash2    size={15} /> });
+    menuItems.push({ path: '/admin',                      label: 'Admin',            icon: <Shield    size={15} /> });
+    menuItems.push({ path: '/reports/headcount',          label: 'Headcount Report', icon: <BarChart2 size={15} /> });
+    menuItems.push({ path: '/reports/salary',             label: 'Salary Report',    icon: <BarChart2 size={15} /> });
+    menuItems.push({ path: '/reports/employee-history',   label: 'History Report',   icon: <BarChart2 size={15} /> });
   }
 
   const currentPage = menuItems.find(i => location.pathname.startsWith(i.path))?.label || 'Dashboard';
