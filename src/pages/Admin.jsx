@@ -165,7 +165,7 @@ return (
                         isSuperAdmin ? 'bg-slate-50/60 opacity-70' : 'hover:bg-indigo-50/40'
                       }`}
                     >
-                      <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.userid}</td>
+                      <td className="px-6 py-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">{user.display_id ?? user.userid.slice(0, 8) + '...'}</td>
                       <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">{user.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap"><UserTypeBadge type={user.user_type} /></td>
                       <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={user.record_status} /></td>
